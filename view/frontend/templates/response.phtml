@@ -1,0 +1,18 @@
+<?php
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+?>
+
+<?php /** @var \Magento\Framework\View\Element\Template $block */?>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let responseData = <?php echo $block->getData('response_data'); ?>;
+        window.parent.postMessage(responseData, '*');
+    });
+</script>

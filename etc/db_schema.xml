@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="acquired_customer" resource="default" engine="innodb" comment="Acquired Customer">
+        <column name="id" xsi:type="int" unsigned="true" nullable="false" identity="true" />
+        <column name="customer_id" xsi:type="int" unsigned="true" nullable="false" />
+        <column name="acquired_customer_id" xsi:type="varchar" length="36" nullable="false"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+
+        <constraint xsi:type="unique" referenceId="ACQUIRED_CUSTOMER_ACQUIRED_CUSTOMER_ID">
+            <column name="acquired_customer_id"/>
+        </constraint>
+
+        <constraint xsi:type="foreign"
+                    referenceId="ACQUIRED_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID"
+                    table="acquired_customer"
+                    column="customer_id"
+                    referenceTable="customer_entity"
+                    referenceColumn="entity_id"
+                    onDelete="CASCADE"
+        />
+    </table>
+</schema>

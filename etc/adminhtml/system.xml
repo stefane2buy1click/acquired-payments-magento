@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment">
+            <group id="acquired"  translate="label comment" type="text" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label><![CDATA[Acquired Payments]]></label>
+                <comment><![CDATA[Accelerate your business growth with our data-driven, customised payment solutions.<br/>]]></comment>
+                <fieldset_css>acquired-payments complex</fieldset_css>
+                <attribute type="expanded">1</attribute>
+                <attribute type="displayIn">recommended_solutions</attribute>
+                <frontend_model>Acquired\Payments\Block\Adminhtml\System\Config\Fieldset</frontend_model>
+                <group id="configuration" type="text" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <field id="version" translate="label" type="text" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Module version</label>
+                        <frontend_model>Acquired\Payments\Model\ModuleVersion</frontend_model>
+                    </field>
+                    <label><![CDATA[Configuration]]></label>
+                    <comment/>
+                    <field id="mode" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="10">
+                        <label>Integration Mode</label>
+                        <source_model>Acquired\Payments\Model\System\Config\IntegrationMode</source_model>
+                    </field>
+                    <field id="api_id" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="20">
+                        <label>Production Api Id</label>
+                        <depends>
+                            <field id="mode">1</field>
+                        </depends>
+                    </field>
+                    <field id="api_secret" type="obscure" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="30">
+                        <label>Production Api Secret</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <depends>
+                            <field id="mode">1</field>
+                        </depends>
+                    </field>
+
+                    <field id="test_api_id" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="40">
+                        <label>Test Api Id</label>
+                        <depends>
+                            <field id="mode">0</field>
+                        </depends>
+                    </field>
+                    <field id="test_api_secret" type="obscure" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="50">
+                        <label>Test Api Secret</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <depends>
+                            <field id="mode">0</field>
+                        </depends>
+                    </field>
+
+                    <field id="hmac_key" type="obscure" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="60">
+                        <label>Production HMAC Key</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <depends>
+                            <field id="mode">1</field>
+                        </depends>
+                    </field>
+
+                    <field id="public_key" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="70">
+                        <label>Production Public Key</label>
+                        <depends>
+                            <field id="mode">1</field>
+                        </depends>
+                    </field>
+
+                    <field id="test_public_key" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="80">
+                        <label>Test Public Key</label>
+                        <depends>
+                            <field id="mode">0</field>
+                        </depends>
+                    </field>
+
+                    <field id="test_hmac_key" type="obscure" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="90">
+                        <label>Test HMAC Key</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <depends>
+                            <field id="mode">0</field>
+                        </depends>
+                    </field>
+
+                    <field id="company" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
+                        <label>Company Name</label>
+                        <comment><![CDATA[Possibly required when used as payment on multi website check <a href="https://docs.acquired.com/docs/steps-to-go-live#company-id-and-mid-values" target="_blank">documentation</a> for details]]></comment>
+                    </field>
+                    <field id="mid" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="110">
+                        <label>MID</label>
+                        <comment><![CDATA[Possibly required when used as payment on multi website check <a href="https://docs.acquired.com/docs/steps-to-go-live#company-id-and-mid-values" target="_blank">documentation</a> for details]]></comment>
+                    </field>
+
+                    <field id="js_integrity_hash" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="110">
+                        <label>Javascript Hash</label>
+                        <comment><![CDATA[If filled out the acquired.js javascript is loaded witn sha384 integrity check (format is sha384-...)]]></comment>
+                    </field>
+
+                    <field id="debug_log" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="120">
+                        <label>Enable Debug Logging</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                </group>
+                <group id="acquired_card" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                    <label>Cards</label>
+                    <field id="active" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="10">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/acquired_card/active</config_path>
+                    </field>
+                    <field id="title" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="20">
+                        <label>Method Title</label>
+                        <comment>Method title as it will appear for customers in checkout</comment>
+                        <config_path>payment/acquired_card/title</config_path>
+                    </field>
+                    <field id="payment_action" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="30">
+                        <label>Payment Action</label>
+                        <source_model>Acquired\Payments\Model\System\Config\PaymentAction</source_model>
+                        <config_path>payment/acquired_card/payment_action</config_path>
+                    </field>
+                    <field id="create_card" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="40">
+                        <label>Save Card</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <comment>Save customer credit card on ACQUIRED.com customer account</comment>
+                        <config_path>payment/acquired_card/create_card</config_path>
+                    </field>
+                    <field id="tds_active" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="50" >
+                        <label>3-D Secure Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <comment>Enables the use of EMV 3-D Secure to authenticate the cardholder</comment>
+                        <config_path>payment/acquired_card/tds_active</config_path>
+                    </field>
+                    <field id="tds_challenge_preference" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="0"  sortOrder="60">
+                        <label>3-D Secure Challenge Preference</label>
+                        <validate>required-entry</validate>
+                        <source_model>Acquired\Payments\Model\System\Config\TdsChallengePreference</source_model>
+                        <comment>Indicates your preference to the issuing bank on if the cardholder should be challenged or not</comment>
+                        <config_path>payment/acquired_card/tds_challenge_preference</config_path>
+                        <depends>
+                            <field id="tds_active">1</field>
+                        </depends>
+                    </field>
+                    <field id="tds_contact_url" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0"  sortOrder="70">
+                        <label>3-D Secure Contact URL</label>
+                        <validate>required-entry</validate>
+                        <comment>Link to the contact us / support page of your website. Please enter full url.</comment>
+                        <config_path>payment/acquired_card/tds_contact_url</config_path>
+                        <depends>
+                            <field id="tds_active">1</field>
+                        </depends>
+                    </field>
+                    <field id="tds_window_size" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="0"  sortOrder="70">
+                        <label>3-D Secure Challenge Window Size</label>
+                        <validate>validate-number</validate>
+                        <comment>Challenge Window Height Size (in pixels) If empty, default value of 750px will be used.</comment>
+                        <config_path>payment/acquired_card/tds_window_size</config_path>
+                        <depends>
+                            <field id="tds_active">1</field>
+                        </depends>
+                    </field>
+                    <field id="style" type="textarea" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="80">
+                        <label>Custom Card Component Style</label>
+                        <comment>You can customize form component style here, paste a json config</comment>
+                        <config_path>payment/acquired_card/style</config_path>
+                    </field>
+                </group>
+            </group>
+        </section>
+    </system>
+</config>

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <acquired>
+                <configuration>
+                    <mode>0</mode>
+                    <api_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+                    <test_api_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+                    <hmac_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+                    <test_hmac_key backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+                    <debug_log>0</debug_log>
+                    <js_integrity_hash>sha384-uEWrid7+SjZbfDvQmobDdKO/2ofqACn5KXS9DKANcM0UfHIq+6X1ItKH+dBqcsaV</js_integrity_hash>
+                </configuration>
+            </acquired>
+            <acquired_card>
+                <active>0</active>
+                <title>Cards</title>
+                <model>AcquiredCcPaymentMethodFacade</model>
+                <payment_action>authorize</payment_action>
+                <tds_active>0</tds_active>
+                <can_authorize>1</can_authorize>
+                <can_capture>1</can_capture>
+                <can_void>1</can_void>
+                <can_refund>1</can_refund>
+                <can_use_checkout>1</can_use_checkout>
+                <can_use_internal>1</can_use_internal>
+                <paymentInfoKeys>payment_method,transaction_id,order_id,mid,authorization_code,cc_type,holder_name,cc_last4,cc_exp,avs_line1,avs_postcode,cvv</paymentInfoKeys>
+            </acquired_card>
+        </payment>
+    </default>
+</config>

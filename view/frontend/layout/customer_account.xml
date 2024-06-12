@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="customer_account_navigation">
+            <block class="Magento\Framework\View\Element\Html\Link\Current" name="acquired-payments-cards-list">
+                <arguments>
+                    <argument name="label" xsi:type="string">Acquired Payments Cards</argument>
+                    <argument name="path" xsi:type="string">acquired/cards/index</argument>
+                    <argument name="sortOrder" xsi:type="number">50</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>
