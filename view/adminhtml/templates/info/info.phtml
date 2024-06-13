@@ -1,0 +1,63 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+ 
+$info = $block->getInfo();
+$order = $info->getOrder();
+$payment = $order->getPayment();
+$title = $payment->getMethodInstance()->getTitle();
+?>
+
+<h4>
+    <span class="acquired-title">Acquired Payments - <?= $title; ?></span>
+    <span class="acquired-card-icon"><img width="50" height="30" src="<?= $this->getCardIcon((string)$payment->getCcType()); ?>" title="<?= $title; ?>" alt="<?= $payment->getCcType(); ?>"/></span>
+</h4>
+
+<table class="admin__table-secondary order-information-table payment-info">
+    <tbody>
+        <tr>
+            <th><?php echo __('Transaction Id'); ?></th>
+            <td class="acquired-value">
+                <?= $this->getPaymentInformation($payment, 'transaction_id'); ?>
+            </td>
+        </tr>
+        <tr>
+            <th><?php echo __('Last 4'); ?></th>
+            <td class="acquired-value">
+                <?= $this->getPaymentInformation($payment, 'cc_last4'); ?>
+            </td>
+        </tr>
+        <tr>
+            <th><?php echo __('Authorization Code'); ?></th>
+            <td class="acquired-value">
+                <?= $this->getPaymentInformation($payment, 'authorization_code'); ?>
+            </td>
+        </tr>
+        <tr>
+            <th><?php echo __('AVS Address'); ?></th>
+            <td class="acquired-value">
+                <?= $this->getPaymentInformation($payment, 'avs_address'); ?>
+            </td>
+        </tr>
+        <tr>
+            <th><?php echo __('AVS Postcode'); ?></th>
+            <td class="acquired-value">
+                <?= $this->getPaymentInformation($payment, 'avs_postcode'); ?>
+            </td>
+        </tr>
+        <tr>
+            <th><?php echo __('CVV'); ?></th>
+            <td class="acquired-value">
+                <?= $this->getPaymentInformation($payment, 'cvv'); ?>
+            </td>
+        </tr>
+    </tbody>
+</table>

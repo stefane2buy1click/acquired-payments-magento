@@ -1,0 +1,19 @@
+{
+    "acquired_customer": {
+        "column": {
+            "id": true,
+            "customer_id": true,
+            "acquired_customer_id": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "ACQUIRED_CUSTOMER_ACQUIRED_CUSTOMER_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ACQUIRED_CUSTOMER_ACQUIRED_CUSTOMER_ID": true,
+            "ACQUIRED_CUSTOMER_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID": true
+        }
+    }
+}

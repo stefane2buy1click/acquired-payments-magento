@@ -1,0 +1,19 @@
+{
+  "name": "acquired/module-payments",
+  "description": "Acquired.com Payments Integration for Magento2",
+  "type": "magento2-module",
+  "version": "1.0.0-alpha.1",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.1",
+    "magento/framework": "*"
+  },
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Acquired\\Payments\\": ""
+    }
+  }
+}

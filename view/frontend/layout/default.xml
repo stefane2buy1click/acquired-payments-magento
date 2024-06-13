@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="head.additional">
+            <block class="Acquired\Payments\Block\AcquiredJs" name="acquired.payment.js" />
+        </referenceBlock>
+    </body>
+</page>

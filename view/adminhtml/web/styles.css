@@ -1,0 +1,10 @@
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+.acquired-payments .heading {background: url("images/acquired.svg") no-repeat 0 50% / 18rem auto;padding-left: 20rem;margin-bottom: 10px;}
+.acquired-payments .button-container {float: right;}
