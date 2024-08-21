@@ -6,3 +6,4 @@ Coming soon, the Acquired.com payments integration for Magento2 will enable you 
 
 If you want to find out more about how you can leverage Acquired.com to unify and optimise your payments ecosystem, then please [get in touch](https://acquired.com/contact/).
 
+TEST
