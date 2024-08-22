@@ -77,6 +77,11 @@
                         <label>Company Name</label>
                         <comment><![CDATA[Possibly required when used as payment on multi website check <a href="https://docs.acquired.com/docs/steps-to-go-live#company-id-and-mid-values" target="_blank">documentation</a> for details]]></comment>
                     </field>
+
+                    <field id="company_id" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="105">
+                        <label>Company Id</label>
+                        <comment><![CDATA[Possibly required when used as payment on multi website check <a href="https://docs.acquired.com/docs/steps-to-go-live#company-id-and-mid-values" target="_blank">documentation</a> for details]]></comment>
+                    </field>
                     <field id="mid" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="110">
                         <label>MID</label>
                         <comment><![CDATA[Possibly required when used as payment on multi website check <a href="https://docs.acquired.com/docs/steps-to-go-live#company-id-and-mid-values" target="_blank">documentation</a> for details]]></comment>
@@ -158,6 +163,18 @@
                         <label>Custom Component Styling</label>
                         <comment>You can customise form component style here.</comment>
                         <config_path>payment/acquired_card/style</config_path>
+                    </field>
+
+                    <field id="google_pay_enabled" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="90">
+                        <label>Enable Google Pay</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/acquired_card/google_pay_enabled</config_path>
+                    </field>
+
+                    <field id="apple_pay_enabled" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="100">
+                        <label>Enable Apple Pay</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/acquired_card/apple_pay_enabled</config_path>
                     </field>
                 </group>
 

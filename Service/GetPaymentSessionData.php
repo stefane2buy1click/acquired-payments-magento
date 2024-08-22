@@ -96,19 +96,21 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
                 $payload['transaction']['custom_data'] = base64_encode($this->serializer->serialize($customData));
             }
 
-            $contactUrl = $this->cardConfig->getTdsContactUrl();
+            $contactUrl = $this->cardConfig->getTdsContactUrl() ?: '';
             $redirectUrl = $this->urlBuilder->getUrl('acquired/threedsecure/response');
             $webhookUrl = $this->urlBuilder->getUrl('acquired/webhook');
 
-            // if not https throw exception
-            if (strpos($contactUrl, 'https://') === false) {
-                throw new Exception('Contact URL must be https');
-            }
-            if (strpos($redirectUrl, 'https://') === false) {
-                throw new Exception('Redirect URL must be https');
-            }
-            if (strpos($webhookUrl, 'https://') === false) {
-                throw new Exception('Webhook URL must be https');
+            if($this->cardConfig->isTdsActive()) {
+                // if not https throw exception
+                if (strpos($contactUrl, 'https://') === false) {
+                    throw new Exception('Contact URL must be https');
+                }
+                if (strpos($redirectUrl, 'https://') === false) {
+                    throw new Exception('Redirect URL must be https');
+                }
+                if (strpos($webhookUrl, 'https://') === false) {
+                    throw new Exception('Webhook URL must be https');
+                }
             }
 
             $payload['tds'] = [
@@ -119,6 +121,8 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
                 'webhook_url' => $webhookUrl
             ];
 
+            $payload['payment_methods'] = $this->getAvailablePaymentMethods();
+
             if ($this->customerSession->isLoggedIn()) {
                 $acquiredCustomer = $this->createAcquiredCustomer->execute($this->customerSession->getCustomerId());
                 $payload['customer'] = [
@@ -128,6 +132,8 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
                 if ($this->cardConfig->isCreateCardEnabled()) {
                     $payload['payment']['create_card'] = true;
                     $payload['payment']['reference'] = $this->customerSession->getCustomerId();
+                } else {
+                    $payload['payment']['create_card'] = false;
                 }
             }
         } catch (Exception $e) {
@@ -138,5 +144,19 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
         }
 
         return $payload;
+    }
+
+    protected function getAvailablePaymentMethods() : array {
+        $paymentMethods = ['card'];
+
+        if($this->cardConfig->isApplePayEnabled()) {
+            $paymentMethods[] = 'apple_pay';
+        }
+
+        if($this->cardConfig->isGooglePayEnabled()) {
+            $paymentMethods[] = 'google_pay';
+        }
+
+        return $paymentMethods;
     }
 }

@@ -37,6 +37,7 @@ class Basic
     protected const KEY_TEST_API_SECRET = 'test_api_secret';
     protected const KEY_TEST_PUBLIC_KEY = 'test_public_key';
     protected const KEY_COMPANY = 'company';
+    protected const KEY_COMPANY_ID = 'company_id';
     protected const KEY_MID = 'mid';
     protected const KEY_DEBUG_LOG = 'debug_log';
     protected const HOSTED_PAYMENT_PRODUCTION_URL = 'https://pay.acquired.com/v1/';
@@ -99,6 +100,16 @@ class Basic
     public function getCompanyName(): ?string
     {
         return $this->getValue(self::KEY_COMPANY);
+    }
+
+    /**
+     * Retrieves the company id
+     *
+     * @return string|null The company name.
+     */
+    public function getCompanyId(): ?string
+    {
+        return $this->getValue(self::KEY_COMPANY_ID);
     }
 
     /**

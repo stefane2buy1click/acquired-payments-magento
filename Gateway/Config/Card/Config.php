@@ -37,6 +37,8 @@ class Config extends GatewayConfig
     private const KEY_TDS_CONTACT_URL = 'tds_contact_url';
     private const KEY_STYLE = 'style';
     private const KEY_TDS_WINDOW_SIZE = 'tds_window_size';
+    private const KEY_GOOGLE_PAY_ENABLED = 'google_pay_enabled';
+    private const KEY_APPLE_PAY_ENABLED = 'apple_pay_enabled';
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -170,6 +172,32 @@ class Config extends GatewayConfig
         $size = $this->getValue(self::KEY_TDS_WINDOW_SIZE, $storeId ?? $this->storeConfigResolver->getStoreId());
 
         return $size ?: '750';
+    }
+
+    /**
+     * Check if Google Pay is enabled.
+     *
+     * @param int|null $storeId
+     * @return bool
+     * @throws InputException
+     * @throws NoSuchEntityException
+     */
+    public function isGooglePayEnabled(int $storeId = null): bool
+    {
+        return (bool) $this->getValue(self::KEY_GOOGLE_PAY_ENABLED, $storeId ?? $this->storeConfigResolver->getStoreId());
+    }
+
+    /**
+     * Check if Apple Pay is enabled.
+     *
+     * @param int|null $storeId
+     * @return bool
+     * @throws InputException
+     * @throws NoSuchEntityException
+     */
+    public function isApplePayEnabled(int $storeId = null): bool
+    {
+        return (bool) $this->getValue(self::KEY_APPLE_PAY_ENABLED, $storeId ?? $this->storeConfigResolver->getStoreId());
     }
 
     /**

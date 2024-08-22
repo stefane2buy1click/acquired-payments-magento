@@ -91,6 +91,20 @@ abstract class AbstractClient
                 ]
             ];
 
+            // get company id from config
+            $companyId = $this->basicConfig->getCompanyId();
+
+            if ($companyId) {
+                $options['headers']['Company-Id'] = $companyId;
+            }
+
+            // get mid from config
+            $mid = $this->basicConfig->getMid();
+
+            if ($mid) {
+                $options['headers']['Mid'] = $mid;
+            }
+
             if ($payload) {
                 $options['body'] = $this->serializer->serialize($payload);
             }
