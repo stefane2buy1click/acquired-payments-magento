@@ -136,7 +136,7 @@ abstract class AbstractClient
 
             throw $authorizationException;
         } catch (GuzzleRequestException $requestException) {
-            $message = __('API request failed!');
+            $message = __('API request failed: %1', $requestException->getMessage());
             $this->logger->critical(
                 $message,
                 [
@@ -173,7 +173,8 @@ abstract class AbstractClient
      */
     private function getAuthorizationToken(): string|bool
     {
-        $token = $this->cache->load(self::CACHE_KEY);
+        $cacheKey = $this->basicConfig->getMode() ? self::CACHE_KEY . "_live" : self::CACHE_KEY . '_test';
+        $token = $this->cache->load($cacheKey);
         if ($token === false) {
             try {
                 $client = $this->clientFactory->create();
@@ -192,8 +193,9 @@ abstract class AbstractClient
                     throw new AuthorizationException(__('Access token is missing.'));
                 }
 
+
                 $token = $authorization['access_token'];
-                $this->cache->save($token, self::CACHE_KEY, [], $authorization['expires_in']);
+                $this->cache->save($token, $cacheKey, [], $authorization['expires_in']);
             } catch (GuzzleRequestException $requestException) {
                 throw new AuthorizationException(__($requestException->getMessage()));
             } catch (Throwable $e) {

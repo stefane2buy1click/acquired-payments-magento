@@ -12,6 +12,7 @@
 
 namespace Acquired\Payments\Model;
 
+use Acquired\Payments\Exception\Response\TdsResponseException;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Acquired\Payments\Gateway\Config\Basic;
@@ -84,6 +85,10 @@ class TdsResponseHandler
      */
     private function validateResponseIntegrity(array $postData): bool
     {
+        if(!isset($postData[self::STATUS_KEY], $postData[self::TRANSACTION_ID_KEY], $postData[self::ORDER_ID_KEY], $postData[self::TIMESTAMP_KEY], $postData[self::HASH_KEY])) {
+            throw new TdsResponseException(__('Invalid 3-D Secure response data'));
+        }
+
         $concatenatedParams = implode('', [
             $postData[self::STATUS_KEY],
             $postData[self::TRANSACTION_ID_KEY],

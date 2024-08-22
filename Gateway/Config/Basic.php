@@ -39,7 +39,10 @@ class Basic
     protected const KEY_COMPANY = 'company';
     protected const KEY_COMPANY_ID = 'company_id';
     protected const KEY_MID = 'mid';
+    protected const KEY_TEST_COMPANY_ID = 'test_company_id';
+    protected const KEY_TEST_MID = 'test_mid';
     protected const KEY_DEBUG_LOG = 'debug_log';
+    protected const KEY_CUSTOMER_PHONE = 'customer_phone';
     protected const HOSTED_PAYMENT_PRODUCTION_URL = 'https://pay.acquired.com/v1/';
     protected const HOSTED_PAYMENT_TEST_URL = 'https://test-pay.acquired.com/v1/';
 
@@ -109,7 +112,7 @@ class Basic
      */
     public function getCompanyId(): ?string
     {
-        return $this->getValue(self::KEY_COMPANY_ID);
+        return $this->getValue($this->getMode() ? self::KEY_COMPANY_ID : self::KEY_TEST_COMPANY_ID);
     }
 
     /**
@@ -119,7 +122,7 @@ class Basic
      */
     public function getMid(): ?string
     {
-        return $this->getValue(self::KEY_MID);
+        return $this->getValue($this->getMode() ? self::KEY_MID :  self::KEY_TEST_MID);
     }
 
     /**
@@ -130,6 +133,16 @@ class Basic
     public function isDebugLogEnabled(): bool
     {
         return $this->isSetFlag(self::KEY_DEBUG_LOG);
+    }
+
+    /**
+     * Checks if the customer phone number should be sent to Acquired/Banks
+     *
+     * @return boolean
+     */
+    public function shouldSendCustomerPhone(): bool
+    {
+        return $this->isSetFlag(self::KEY_CUSTOMER_PHONE);
     }
 
     /**

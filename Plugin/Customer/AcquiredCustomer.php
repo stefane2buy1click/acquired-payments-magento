@@ -16,6 +16,7 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Psr\Log\LoggerInterface;
 
 class AcquiredCustomer
 {
@@ -25,7 +26,8 @@ class AcquiredCustomer
      */
     public function __construct(
         private readonly ExtensionAttributesFactory $extensionFactory,
-        private readonly AcquiredCustomerRepositoryInterface $acquiredCustomerRepository
+        private readonly AcquiredCustomerRepositoryInterface $acquiredCustomerRepository,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -67,11 +69,12 @@ class AcquiredCustomer
         if ($extensionAttributes === null || $extensionAttributes->getAcquiredCustomerId() === null) {
             try {
                 $acquiredCustomer = $this->acquiredCustomerRepository->getByCustomerId((int) $customer->getId());
-                $extensionAttributes = $this->extensionFactory->create(CustomerInterface::class);
+                $extensionAttributes = $extensionAttributes ?: $this->extensionFactory->create(CustomerInterface::class);
                 $customer->setExtensionAttributes($extensionAttributes);
 
                 $extensionAttributes->setAcquiredCustomerId($acquiredCustomer->getAcquiredCustomerId());
-            } catch (NoSuchEntityException) {
+            } catch (NoSuchEntityException $e) {
+                $this->logger->critical(__("Exception trying to set acquired customer id: %1", $e->getMessage()), ['exception' => $e]);
             }
         }
     }

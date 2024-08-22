@@ -60,22 +60,19 @@ class GetPaymentConfirmParams
         try {
             $confirmParams = [];
 
-            if (!$this->customerSession->isLoggedIn()) {
-                // update acquired session
-                $this->acquiredSession->prepareForPurchase($nonce);
-                return $confirmParams;
-            }
-
-            $customer = $this->customerRepository->getById($this->customerSession->getCustomerId());
+            $customer =  $this->customerSession->isLoggedIn() ? $this->customerRepository->getById($this->customerSession->getCustomerId()) : null;
             $quote = $this->checkoutSession->getQuote();
 
             $billingAddress = $quote->getBillingAddress();
             $shippingAddress = $quote->getShippingAddress();
 
             $confirmParams['customer'] = [
-                'reference' => $customer->getExtensionAttributes()->getAcquiredCustomerId(),
                 'webhook_url' => $this->urlBuilder->getUrl('acquired/webhook')
             ];
+
+            if ($customer) {
+                $confirmParams['reference'] = $customer->getExtensionAttributes()->getAcquiredCustomerId();
+            }
 
             /**
              * @var TransactionAddressDataInterface $addressData

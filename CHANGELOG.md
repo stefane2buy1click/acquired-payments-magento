@@ -2,6 +2,20 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.0.0-beta.5] - Beta version
+- Fix authorization token cache issue not being split by environment
+- Fix bug where retry payment would fail if amount was not a float but a string
+- Fix issue where failing payment on Google Pay
+- Fix issue with save card not working correctly during checkout experience
+- Add in split configuration for Mid and Company-Id by environment
+- Add in check if transaction exists before trying to refund order
+- Add in webhook handling for PayByBank orders
+- Add in iframe sandbox options for improved security
+- Adjust handling of Wallet payments to conform with ApplePay restrictions
+- Add in configuration for optional sending through customer phone information during session create/update as it can cause 3ds rejection
+- Code quality improvements
+- Remove all but card payment options for Admin orders
+
 ## [1.0.0-beta.4] - Beta version
 - Excluded payment-links API call from adding Mid information as it was causing issues
 - Fix address data not being sent through on initial session creation and only on confirm params call

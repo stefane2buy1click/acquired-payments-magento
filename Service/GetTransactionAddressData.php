@@ -15,6 +15,7 @@ namespace Acquired\Payments\Service;
 use Acquired\Payments\Model\Data\TransactionAddressData;
 use Acquired\Payments\Api\Data\TransactionAddressDataInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Acquired\Payments\Gateway\Config\Basic as BasicConfig;
 
 class GetTransactionAddressData {
 
@@ -251,6 +252,10 @@ class GetTransactionAddressData {
         'ZW'=>'263'
     ];
 
+    public function __construct(
+        private readonly BasicConfig $config
+    ) {}
+
     /**
      * Returns a data object with billing / shipping information for the transaction
      *
@@ -270,12 +275,17 @@ class GetTransactionAddressData {
                 'postcode' => $billingAddress->getPostcode(),
                 'country_code' => $billingAddress->getCountryId()
             ],
-            'email' => $billingAddress->getEmail(),
-            'phone' => [
-                'country_code' => $this->getPhoneCodeByCountryId($billingAddress->getCountryId()),
-                'number' => $billingAddress->getTelephone()
-            ]
+            'email' => $billingAddress->getEmail()
         ];
+
+        $shouldSendTelephone = $this->config->shouldSendCustomerPhone();
+
+        if($shouldSendTelephone) {
+            $billing['phone'] = [
+                'country_code' => $this->getPhoneCodeByCountryId($billingAddress->getCountryId()),
+                'number' => $this->filterPhoneValue($billingAddress->getTelephone() ?? '')
+            ];
+        }
 
         $shipping = null;
 
@@ -296,6 +306,16 @@ class GetTransactionAddressData {
         }
 
         return new TransactionAddressData($billing, $shipping);
+    }
+
+    /**
+     * Remove all non number characters from the phone number
+     *
+     * @param string $phone
+     * @return string
+     */
+    protected function filterPhoneValue(string $phone): string {
+        return preg_replace('/[^0-9]/', '', $phone);
     }
 
     /**
