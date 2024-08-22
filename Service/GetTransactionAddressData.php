@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -8,10 +9,15 @@ declare(strict_types=1);
  * See LICENSE.txt for license details.
  */
 
-namespace Acquired\Payments\Model\System\Source;
+namespace Acquired\Payments\Service;
 
-interface PhoneCodesInterface
-{
+
+use Acquired\Payments\Model\Data\TransactionAddressData;
+use Acquired\Payments\Api\Data\TransactionAddressDataInterface;
+use Magento\Quote\Api\Data\CartInterface;
+
+class GetTransactionAddressData {
+
     public const CODES = [
         'AD'=>'376',
         'AE'=>'971',
@@ -246,10 +252,61 @@ interface PhoneCodesInterface
     ];
 
     /**
-     * Get phone code by country id
+     * Returns a data object with billing / shipping information for the transaction
      *
-     * @param $countryId
+     * @param CartInterface $quote
+     * @return TransactionAddressDataInterface
+     */
+    public function execute(CartInterface $quote) : TransactionAddressDataInterface {
+
+        $billingAddress = $quote->getBillingAddress();
+        $shippingAddress = $quote->getShippingAddress();
+
+        $billing = [
+            'address' => [
+                'line_1' => $billingAddress->getStreetLine(1),
+                'line_2' => $billingAddress->getStreetLine(2),
+                'city' => $billingAddress->getCity(),
+                'postcode' => $billingAddress->getPostcode(),
+                'country_code' => $billingAddress->getCountryId()
+            ],
+            'email' => $billingAddress->getEmail(),
+            'phone' => [
+                'country_code' => $this->getPhoneCodeByCountryId($billingAddress->getCountryId()),
+                'number' => $billingAddress->getTelephone()
+            ]
+        ];
+
+        $shipping = null;
+
+        if(!$quote->getIsVirtual()) {
+            if ($shippingAddress->getSameAsBilling()) {
+                $shipping = ['address_match' => true];
+            } else {
+                $shipping = [
+                    'address' => [
+                        'line_1' => $shippingAddress->getStreetLine(1),
+                        'line_2' => $shippingAddress->getStreetLine(2),
+                        'city' => $shippingAddress->getCity(),
+                        'postcode' => $shippingAddress->getPostcode(),
+                        'country_code' => $shippingAddress->getCountryId()
+                    ]
+                ];
+            }
+        }
+
+        return new TransactionAddressData($billing, $shipping);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param [type] $countryId
      * @return string|null
      */
-    public function getPhoneCodeByCountryId($countryId): ?string;
+    public function getPhoneCodeByCountryId($countryId): ?string
+    {
+        return self::CODES[$countryId] ?? null;
+    }
+
 }

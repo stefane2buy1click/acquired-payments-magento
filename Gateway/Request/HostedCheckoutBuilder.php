@@ -22,19 +22,33 @@ use Acquired\Payments\Gateway\Config\Hosted\Config as HostedConfig;
 use Magento\Store\Model\StoreManagerInterface;
 use Acquired\Payments\Api\AcquiredCustomerRepositoryInterface;
 use Acquired\Payments\Model\Api\CreateAcquiredCustomer;
+use Acquired\Payments\Service\GetTransactionAddressData;
+use Acquired\Payments\Api\Data\TransactionAddressDataInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 
 class HostedCheckoutBuilder implements BuilderInterface
 {
 
     /**
+     *
      * @param LoggerInterface $logger
+     * @param StoreManagerInterface $storeManager
+     * @param UrlInterface $urlBuilder
+     * @param HostedConfig $hostedConfig
+     * @param CreateAcquiredCustomer $createAcquiredCustomer
+     * @param GetTransactionAddressData $getTransactionAddressData
+     * @param CartRepositoryInterface $quoteRepository
+     *
      */
     public function __construct(
         private readonly LoggerInterface $logger,
         private readonly StoreManagerInterface $storeManager,
         private readonly UrlInterface $urlBuilder,
         private readonly HostedConfig $hostedConfig,
-        private readonly CreateAcquiredCustomer $createAcquiredCustomer
+        private readonly CreateAcquiredCustomer $createAcquiredCustomer,
+        private readonly GetTransactionAddressData $getTransactionAddressData,
+        private readonly CartRepositoryInterface $quoteRepository
     ) {
     }
 
@@ -48,9 +62,10 @@ class HostedCheckoutBuilder implements BuilderInterface
         try {
             $payment = SubjectReader::readPayment($buildSubject)->getPayment();
             $order = $payment->getOrder();
+            $quote = $this->quoteRepository->get($order->getQuoteId());
             $amount = (float)SubjectReader::readAmount($buildSubject);
 
-            if ($order->getQuote() && $order->getQuote()->getIsMultiShipping()) {
+            if ($quote->getIsMultiShipping()) {
                 $order->setMultishippingAcquiredTransactionId('M-' . $order->getQuoteId());
             }
 
@@ -66,7 +81,7 @@ class HostedCheckoutBuilder implements BuilderInterface
                 throw new BuilderException(__('Webhook URL must be HTTPS: %1', $this->urlBuilder->getUrl($this->hostedConfig->getWebhookUrl())));
             }
 
-            return $this->getData($order->getIncrementId(), $amount, $customData);
+            return $this->getData((int) $order->getQuoteId(), $order->getIncrementId(), $amount, $customData);
         } catch (Exception $e) {
             $message = __('Authorize build failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);
@@ -75,8 +90,19 @@ class HostedCheckoutBuilder implements BuilderInterface
         }
     }
 
-    public function getData($orderId, $amount, $customData = [])
+    /**
+     * Builds transaction data for hosted checkout flow
+     *
+     * @param int $quote
+     * @param string $orderId
+     * @param float $amount
+     * @param array $customData
+     * @return void
+     */
+    public function getData(int $quoteId, $orderId, $amount, array $customData = [])
     {
+        $quote = $this->quoteRepository->get($quoteId);
+
         $payload = [
             'transaction' => [
                 'order_id' => $orderId,
@@ -102,12 +128,22 @@ class HostedCheckoutBuilder implements BuilderInterface
         if (isset($customData, $customData['custom2'])) {
             $payload['transaction']['custom2'] = $customData['custom2'];
         }
+
+        $payload['customer'] = [];
+
         if (isset($customData, $customData['customer_id'])) {
             $acquiredCustomer = $this->createAcquiredCustomer->execute($customData['customer_id']);
             if ($acquiredCustomer && isset($acquiredCustomer['customer_id'])) {
-                $payload['customer'] = ['customer_id' => $acquiredCustomer['customer_id']];
+                $payload['customer']['customer_id'] = $acquiredCustomer['customer_id'];
             }
         }
+
+        /**
+         * @var TransactionAddressDataInterface $addressData
+         */
+        $addressData = $this->getTransactionAddressData->execute($quote);
+        $payload['customer']['billing'] = $addressData->getBilling();
+        $payload['customer']['shipping'] = $addressData->getShipping() ?? [];
 
         return $payload;
     }

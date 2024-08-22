@@ -21,6 +21,8 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Acquired\Payments\Exception\Api\SessionException;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Acquired\Payments\Service\GetTransactionAddressData;
+use Acquired\Payments\Api\Data\TransactionAddressDataInterface;
 
 class GetAdminPaymentSessionData implements PaymentSessionDataInterface
 {
@@ -41,7 +43,8 @@ class GetAdminPaymentSessionData implements PaymentSessionDataInterface
         private readonly SerializerInterface $serializer,
         private readonly CartRepositoryInterface $cartRepository,
         private readonly LoggerInterface $logger,
-        private readonly PriceCurrencyInterface $priceCurrency
+        private readonly PriceCurrencyInterface $priceCurrency,
+        private readonly GetTransactionAddressData $getTransactionAddressData
     ) {
     }
 
@@ -82,11 +85,19 @@ class GetAdminPaymentSessionData implements PaymentSessionDataInterface
                 $payload['transaction']['custom_data'] = base64_encode($this->serializer->serialize($customData));
             }
 
+            $payload['custmoer'] = [];
+
             if ($acquiredCustomerId) {
-                $payload['customer'] = [
-                    'customer_id' => $acquiredCustomerId
-                ];
+                $payload['customer']['customer_id'] = $acquiredCustomerId;
             }
+
+            /**
+             * @var TransactionAddressDataInterface $addressData
+             */
+            $addressData = $this->getTransactionAddressData->execute($quote);
+            $payload['customer']['billing'] = $addressData->getBilling();
+            $payload['customer']['shipping'] = $addressData->getShipping() ?? [];
+
         } catch (Exception $e) {
             $message = __('Get Admin Payment Session data failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);

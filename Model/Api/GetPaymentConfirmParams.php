@@ -17,17 +17,23 @@ use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\Session as CustomerSession;
 use Acquired\Payments\Exception\Api\PaymentConfirmParamsException;
-use Acquired\Payments\Model\System\Source\PhoneCodesInterface;
 use Acquired\Payments\Model\Api\AcquiredSession;
+use Acquired\Payments\Service\GetTransactionAddressData;
+use Acquired\Payments\Api\Data\TransactionAddressDataInterface;
 
-class GetPaymentConfirmParams implements PhoneCodesInterface
+class GetPaymentConfirmParams
 {
 
     /**
+     *
      * @param CustomerSession $customerSession
      * @param CheckoutSession $checkoutSession
      * @param CustomerRepositoryInterface $customerRepository
      * @param UrlInterface $urlBuilder
+     * @param LoggerInterface $logger
+     * @param AcquiredSession $acquiredSession
+     * @param GetTransactionAddressData $getTransactionAddressData
+     *
      */
     public function __construct(
         private readonly CustomerSession $customerSession,
@@ -35,7 +41,8 @@ class GetPaymentConfirmParams implements PhoneCodesInterface
         private readonly CustomerRepositoryInterface $customerRepository,
         private readonly UrlInterface $urlBuilder,
         private readonly LoggerInterface $logger,
-        private readonly AcquiredSession $acquiredSession
+        private readonly AcquiredSession $acquiredSession,
+        private readonly GetTransactionAddressData $getTransactionAddressData
     ) {
     }
 
@@ -67,34 +74,15 @@ class GetPaymentConfirmParams implements PhoneCodesInterface
 
             $confirmParams['customer'] = [
                 'reference' => $customer->getExtensionAttributes()->getAcquiredCustomerId(),
-                'billing' => [
-                    'address' => [
-                        'line_1' => $billingAddress->getStreetLine(1),
-                        'line_2' => $billingAddress->getStreetLine(2),
-                        'city' => $billingAddress->getCity(),
-                        'postcode' => $billingAddress->getPostcode(),
-                        'country_code' => $billingAddress->getCountryId()
-                    ],
-                    'email' => $billingAddress->getEmail(),
-                    'phone' => [
-                        'country_code' => $this->getPhoneCodeByCountryId($billingAddress->getCountryId()),
-                        'number' => $billingAddress->getTelephone()
-                    ]
-                ],
                 'webhook_url' => $this->urlBuilder->getUrl('acquired/webhook')
             ];
 
-            if ($shippingAddress->getSameAsBilling()) {
-                $confirmParams['customer']['shipping']['address_match'] = true;
-            } else {
-                $confirmParams['customer']['shipping']['address'] = [
-                    'line_1' => $shippingAddress->getStreetLine(1),
-                    'line_2' => $shippingAddress->getStreetLine(2),
-                    'city' => $shippingAddress->getCity(),
-                    'postcode' => $shippingAddress->getPostcode(),
-                    'country_code' => $shippingAddress->getCountryId()
-                ];
-            }
+            /**
+             * @var TransactionAddressDataInterface $addressData
+             */
+            $addressData = $this->getTransactionAddressData->execute($quote);
+            $confirmParams['customer']['billing'] = $addressData->getBilling();
+            $confirmParams['customer']['shipping'] = $addressData->getShipping() ?? [];
 
             // update acquired session
             $this->acquiredSession->prepareForPurchase($nonce);
@@ -107,13 +95,5 @@ class GetPaymentConfirmParams implements PhoneCodesInterface
 
             throw new PaymentConfirmParamsException($message);
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getPhoneCodeByCountryId($countryId): ?string
-    {
-        return self::CODES[$countryId] ?? null;
     }
 }

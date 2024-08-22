@@ -32,6 +32,10 @@ abstract class AbstractClient
 
     private const CACHE_KEY = 'acquired_access_token';
 
+    protected $excludedMidEndpoints = [
+        'payment-links'
+    ];
+
     /**
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
@@ -101,7 +105,7 @@ abstract class AbstractClient
             // get mid from config
             $mid = $this->basicConfig->getMid();
 
-            if ($mid) {
+            if ($mid && !in_array($endpoint, $this->excludedMidEndpoints) ) {
                 $options['headers']['Mid'] = $mid;
             }
 
