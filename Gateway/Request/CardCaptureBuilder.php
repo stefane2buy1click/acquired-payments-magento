@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Gateway\Request;
@@ -18,6 +16,7 @@ use Acquired\Payments\Exception\Command\BuilderException;
 use Acquired\Payments\Gateway\Config\Card\Config as CardConfig;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Magento\Checkout\Model\Session as CheckoutSession;use Acquired\Payments\Service\MultishippingService;
 
 class CardCaptureBuilder implements BuilderInterface
 {
@@ -25,10 +24,13 @@ class CardCaptureBuilder implements BuilderInterface
     /**
      * @param CardConfig $cardConfig
      * @param LoggerInterface $logger
+     * @param CheckoutSession $checkoutSession
      */
     public function __construct(
         private readonly CardConfig $cardConfig,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly CheckoutSession $checkoutSession,
+        private readonly MultishippingService $multishippingService
     ) {
     }
 
@@ -41,12 +43,14 @@ class CardCaptureBuilder implements BuilderInterface
     {
         try {
             $payment = SubjectReader::readPayment($buildSubject)->getPayment();
-            if (empty($payment->getAdditionalInformation('transaction_id'))) {
+            $order = $payment->getOrder();
+
+            if (empty($payment->getAdditionalInformation('transaction_id')) && !$order->getMultishippingAcquiredTransactionId()) {
                 throw new BuilderException(__('Missing transaction_id'));
             }
 
             return [
-                'transaction_id' => $payment->getAdditionalInformation('transaction_id'),
+                'transaction_id' => ($order->getMultishippingAcquiredTransactionId()) ?: $payment->getAdditionalInformation('transaction_id'),
                 'amount' => ['amount' => SubjectReader::readAmount($buildSubject)],
                 'is_captured' => $this->cardConfig->getCaptureAction()
             ];

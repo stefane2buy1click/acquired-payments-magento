@@ -1,12 +1,10 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 -->
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
@@ -32,6 +30,12 @@
         <service class="Acquired\Payments\Model\Api\GetPaymentConfirmParams" method="execute"/>
         <resources>
             <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route method="POST" url="/V1/acquired/multishipping">
+        <service class="Acquired\Payments\Model\Api\CreateMultiShipping" method="execute"/>
+        <resources>
+            <resource ref="self"/>
         </resources>
     </route>
 </routes>

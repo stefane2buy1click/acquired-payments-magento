@@ -1,0 +1,31 @@
+<?php
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+?>
+<script>
+    require([
+        'uiLayout',
+        'jquery'
+    ], function (layout, $) {
+        $(function () {
+            var paymentMethodData = {
+                method: 'acquired_pay_by_bank'
+            };
+            layout([
+                {
+                    component: 'Acquired_Payments/js/view/payment/method-renderer/multishipping/pay-by-bank',
+                    name: 'payment_method_acquired_pay_by_bank',
+                    method: paymentMethodData.method,
+                    item: paymentMethodData
+                }
+            ]);
+
+            $('body').trigger('contentUpdated');
+        })
+    })
+</script>
+<!-- ko template: getTemplate() --><!-- /ko -->

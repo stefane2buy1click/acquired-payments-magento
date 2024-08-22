@@ -1,12 +1,9 @@
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
-
 define(
     [
         'underscore',
@@ -216,7 +213,7 @@ define(
              * @returns {String}
              */
             getTdsWindowSize: function() {
-            	return window.checkoutConfig.payment[this.getCode()].tds_window_size;
+           	    return window.checkoutConfig.payment[this.getCode()].tds_window_size;
             },
 
             /**
@@ -465,7 +462,7 @@ define(
              * Clear session cookie
              */
             afterPlaceOrder: function () {
-                // removed session id from cookie in favor of PHP session
+                fullScreenLoader.stopLoader();
             },
 
             /**

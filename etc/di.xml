@@ -1,12 +1,10 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
@@ -15,6 +13,9 @@
     <preference for="Acquired\Payments\Api\Data\SessionDataInterface" type="Acquired\Payments\Model\Api\Response\SessionId"/>
     <preference for="Acquired\Payments\Api\Data\AcquiredCustomerInterface" type="Acquired\Payments\Model\AcquiredCustomer"/>
     <preference for="Acquired\Payments\Api\AcquiredCustomerRepositoryInterface" type="Acquired\Payments\Model\AcquiredCustomerRepository"/>
+    <preference for="Acquired\Payments\Api\MultishippingRepositoryInterface" type="Acquired\Payments\Model\MultishippingRepository"/>
+	  <preference for="Acquired\Payments\Api\Data\MultishippingInterface" type="Acquired\Payments\Model\Multishipping"/>
+	  <preference for="Acquired\Payments\Api\Data\MultishippingSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
 
     <type name="Acquired\Payments\Model\Api\AcquiredSession">
         <arguments>
@@ -26,6 +27,18 @@
         <plugin name="acquired_payments_customer_extension_attribute" type="Acquired\Payments\Plugin\Customer\AcquiredCustomer"/>
     </type>
 
+    <type name="Magento\Checkout\Api\GuestPaymentInformationManagementInterface">
+        <plugin name="acquired_payments_guest_payment_information_management" type="Acquired\Payments\Plugin\Sales\AfterPlaceOrder"/>
+    </type>
+    <type name="Magento\Checkout\Api\PaymentInformationManagementInterface">
+        <plugin name="acquired_payments_payment_information_management" type="Acquired\Payments\Plugin\Sales\AfterPlaceOrder"/>
+    </type>
+
+    <type name="Magento\Framework\Session\SessionStartChecker">
+        <plugin name="acquired_payment_session_start_checker_plugin" type="Acquired\Payments\Plugin\Framework\SessionStartCheckerPlugin"/>
+    </type>
+
+
     <!-- FACADE -->
     <virtualType name="AcquiredCcPaymentMethodFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
@@ -36,12 +49,27 @@
             <argument name="commandPool" xsi:type="object">AcquiredCardCommandPool</argument>
         </arguments>
     </virtualType>
+
+    <virtualType name="AcquiredHostedCheckoutPaymentMethodFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Acquired\Payments\Ui\Method\PayByBankProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Acquired\Payments\Block\Adminhtml\Order\Payment\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Acquired\Payments\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AcquiredHostedValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">AcquiredHostedCommandPool</argument>
+        </arguments>
+    </virtualType>
     <!-- END FACADE -->
 
     <!-- CONFIGURATION READER -->
     <type name="Acquired\Payments\Gateway\Config\Card\Config">
         <arguments>
             <argument name="methodCode" xsi:type="const">Acquired\Payments\Ui\Method\CardProvider::CODE</argument>
+        </arguments>
+    </type>
+    <type name="Acquired\Payments\Gateway\Config\Hosted\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Acquired\Payments\Ui\Method\PayByBankProvider::CODE</argument>
         </arguments>
     </type>
     <!-- END CONFIGURATION READER -->
@@ -60,6 +88,18 @@
             <argument name="configInterface" xsi:type="object">Acquired\Payments\Gateway\Config\Card\Config</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AcquiredHostedValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AcquiredHostedValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AcquiredHostedValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">Acquired\Payments\Gateway\Config\Hosted\Config</argument>
+        </arguments>
+    </virtualType>
     <!-- END VALUE HANDLER POOL -->
 
     <!-- COMMANDS -->
@@ -68,6 +108,17 @@
             <argument name="commands" xsi:type="array">
                 <item name="authorize" xsi:type="string">AcquiredCardAuthorizeCommand</item>
                 <item name="capture" xsi:type="string">AcquiredCardCaptureCommand</item>
+                <item name="void" xsi:type="string">AcquiredCardVoidCommand</item>
+                <item name="refund" xsi:type="string">AcquiredCardRefundCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AcquiredHostedCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="authorize" xsi:type="string">AcquiredHostedAuthorizeCommand</item>
+                <item name="capture" xsi:type="string">AcquiredHostedNoOpCommand</item>
                 <item name="void" xsi:type="string">AcquiredCardVoidCommand</item>
                 <item name="refund" xsi:type="string">AcquiredCardRefundCommand</item>
             </argument>
@@ -84,10 +135,33 @@
             <argument name="validator" xsi:type="object">Acquired\Payments\Gateway\Validator\ResponseValidator</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AcquiredHostedAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">Acquired\Payments\Gateway\Request\HostedCheckoutBuilder</argument>
+            <argument name="transferFactory" xsi:type="object">Acquired\Payments\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Acquired\Payments\Gateway\Http\Client\HostedCheckout</argument>
+            <argument name="handler" xsi:type="object">AcquiredHostedCheckoutAuthorizationHandler</argument>
+            <argument name="validator" xsi:type="object">Acquired\Payments\Gateway\Validator\ResponseValidator</argument>
+        </arguments>
+    </virtualType>
     <virtualType name="AcquiredAuthorizationHandler" type="Magento\Payment\Gateway\Response\HandlerChain">
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="default" xsi:type="string">Acquired\Payments\Gateway\Response\Card\PaymentDetailsHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AcquiredHostedCheckoutAuthorizationHandler" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">Acquired\Payments\Gateway\Response\PayByBank\PaymentDetailsHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AcquiredHostedCheckoutNoOpHandler" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">Acquired\Payments\Gateway\Response\PayByBank\NoActionHandler</item>
             </argument>
         </arguments>
     </virtualType>
@@ -137,6 +211,17 @@
             <argument name="validator" xsi:type="object">Acquired\Payments\Gateway\Validator\ResponseValidator</argument>
         </arguments>
     </virtualType>
+
+    <!-- No Operation -->
+    <virtualType name="AcquiredHostedNoOpCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">Acquired\Payments\Gateway\Request\HostedCheckoutBuilder</argument>
+            <argument name="transferFactory" xsi:type="object">Acquired\Payments\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Acquired\Payments\Gateway\Http\Client\NoAction</argument>
+            <argument name="handler" xsi:type="object">AcquiredHostedCheckoutNoOpHandler</argument>
+            <argument name="validator" xsi:type="object">Acquired\Payments\Gateway\Validator\ResponseValidator</argument>
+        </arguments>
+    </virtualType>
     <!-- END COMMANDS -->
 
     <!-- ADMINHTML ORDER PAYMENT INFO -->
@@ -183,6 +268,24 @@
         </arguments>
     </virtualType>
     <!-- END WEBHOOK LOGGER -->
+
+    <!-- CRON LOGGER -->
+    <virtualType name="AcquiredCronLoggerHandler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+            <argument name="fileName" xsi:type="string">var/log/acquired/cronjob.log</argument>
+            <argument name="loggerType" xsi:type="const">Monolog\Logger::INFO</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AcquiredCronLogger" type="Acquired\Payments\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">acquired_cron</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">AcquiredCronLoggerHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <!-- END CRON LOGGER -->
 
     <!-- PAYMENT LOGGERS -->
     <!-- PROVIDER LOGGERS -->
@@ -284,6 +387,11 @@
             <argument name="logger" xsi:type="object">AcquiredPaymentLogger</argument>
         </arguments>
     </type>
+    <type name="Acquired\Payments\Gateway\Response\PayByBank\PaymentDetailsHandler">
+        <arguments>
+            <argument name="logger" xsi:type="object">AcquiredPaymentLogger</argument>
+        </arguments>
+    </type>
 
     <!-- 3DS LOGGERS -->
     <type name="Acquired\Payments\Controller\Threedsecure\Response">
@@ -312,4 +420,12 @@
         </arguments>
     </type>
     <!-- END WEBHOOK LOGGERS -->
+
+    <!-- CRON LOGGERS -->
+    <type name="Acquired\Payments\Cron\CleanMultishipping">
+        <arguments>
+            <argument name="logger" xsi:type="object">AcquiredCronLogger</argument>
+        </arguments>
+    </type>
+    <!-- END CRON LOGGERS -->
 </config>

@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<!--
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="acquired">
+        <job name="acquired_payments_cleanmultishipping" instance="Acquired\Payments\Cron\CleanMultishipping" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
+
+        <job name="acquired_payments_cancel_pending_orders" instance="Acquired\Payments\Cron\CancelPendingOrders" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
+    </group>
+</config>

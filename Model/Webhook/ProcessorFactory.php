@@ -1,18 +1,19 @@
 <?php
 
 /**
- * Acquired.com Payments Integration for Magento2
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ *
+ *
  */
 
 namespace Acquired\Payments\Model\Webhook;
 
 use InvalidArgumentException;
-use Acquired\Payments\Model\Webhook\Processor\StatusUpdateProcessorFactory;
+use Acquired\Payments\Model\Webhook\Processor\CompositeStatusUpdateProcessorFactory;
 use Acquired\Payments\Model\Webhook\Processor\UnsupportedTypeProcessorFactory;
 
 /**
@@ -24,11 +25,11 @@ class ProcessorFactory
 {
 
     /**
-     * @param StatusUpdateProcessorFactory $statusUpdateProcessorFactory
+     * @param CompositeStatusUpdateProcessorFactory $statusUpdateProcessorFactory
      * @param UnsupportedTypeProcessorFactory $unsupportedTypeProcessorFactory
      */
     public function __construct(
-        private readonly StatusUpdateProcessorFactory $statusUpdateProcessorFactory,
+        private readonly CompositeStatusUpdateProcessorFactory $statusUpdateProcessorFactory,
         private readonly UnsupportedTypeProcessorFactory $unsupportedTypeProcessorFactory
     ) {
     }

@@ -2,20 +2,28 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
- 
+
 $info = $block->getInfo();
 $order = $info->getOrder();
+$isQuote = false;
+
+if (!$order) {
+    $order = $info->getQuote();
+    $isQuote = true;
+}
+
 $payment = $order->getPayment();
 $title = $payment->getMethodInstance()->getTitle();
 ?>
 
 <p>Acquired Payments - <?= $title; ?></p>
-<p><img width="50" height="30" src="<?= $this->getCardIcon((string)$payment->getCcType()); ?>" title="<?= $title; ?>" alt="<?= $payment->getCcType(); ?>"/></p>
-<p>Last 4: **** <?= $this->getPaymentInformation($payment, 'cc_last4'); ?></p>
+
+<?php if (!$isQuote): ?>
+    <p><img width="50" height="30" src="<?= $this->getCardIcon((string)$payment->getCcType()); ?>" title="<?= $title; ?>" alt="<?= $payment->getCcType(); ?>"/></p>
+    <p>Last 4: **** <?= $this->getPaymentInformation($payment, 'cc_last4'); ?></p>
+<?php endif; ?>

@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Client;
@@ -30,7 +28,8 @@ class Gateway
         private readonly Customer $customer,
         private readonly MerchantSession $merchantSession,
         private readonly Payment $payment,
-        private readonly Transaction $transaction
+        private readonly Transaction $transaction,
+        private readonly PaymentLinks $paymentLinks
     ) {
     }
 
@@ -102,5 +101,15 @@ class Gateway
     public function getTransaction(): Transaction
     {
         return $this->transaction;
+    }
+
+    /**
+     * Get all APIs
+     *
+     * @return array
+     */
+    public function getPaymentLinks() : PaymentLinks
+    {
+        return $this->paymentLinks;
     }
 }

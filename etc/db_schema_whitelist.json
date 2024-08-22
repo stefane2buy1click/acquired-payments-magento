@@ -15,5 +15,20 @@
             "ACQUIRED_CUSTOMER_ACQUIRED_CUSTOMER_ID": true,
             "ACQUIRED_CUSTOMER_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID": true
         }
+    },
+    "acquired_multishipping": {
+        "column": {
+            "id": true,
+            "quote_reserved_id": true,
+            "quote_address_id": true,
+            "customer_id": true,
+            "acquired_session_id": true,
+            "acquired_transaction_id": true,
+            "status": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
     }
 }

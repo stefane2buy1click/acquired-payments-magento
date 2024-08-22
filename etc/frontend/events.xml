@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<!--
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+	<event name="multishipping_checkout_controller_success_action">
+		<observer name="acquired_payments_observer_frontend_multishipping_checkoutcontrollersuccessaction_multishipping_checkout_controller_success_action" instance="Acquired\Payments\Observer\Multishipping\CheckoutControllerSuccessAction"/>
+	</event>
+
+    <event name="checkout_type_multishipping_create_orders_single">
+        <observer name="acquired_multishipping_create_orders_single" instance="Acquired\Payments\Observer\Multishipping\CreateOrdersSingleObserver"/>
+    </event>
+</config>

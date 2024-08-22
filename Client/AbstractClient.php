@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Client;
@@ -128,6 +126,7 @@ abstract class AbstractClient
                 $message,
                 [
                     'endpoint' => $endpoint,
+                    'payload' => json_encode($payload),
                     'response' => $requestException->getResponse() ?
                         $requestException->getResponse()->getBody()->getContents() : null,
                     'exception' => $requestException

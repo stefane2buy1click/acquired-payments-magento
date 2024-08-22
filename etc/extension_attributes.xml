@@ -1,12 +1,10 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -17,6 +15,14 @@
                   reference_field="customer_id"
                   join_on_field="entity_id">
                 <field>acquired_customer_id</field>
+            </join>
+        </attribute>
+    </extension_attributes>
+
+    <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
+        <attribute code="payment_method" type="string" >
+            <join reference_table="sales_order_payment" reference_field="parent_id" join_on_field="entity_id">
+                <field>method</field>
             </join>
         </attribute>
     </extension_attributes>
