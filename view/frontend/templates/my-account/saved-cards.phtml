@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
@@ -14,34 +15,34 @@
     $cards = $viewModel->getCustomerCards();
     ?>
     <div class="block-content">
-        <?php if (count($cards) > 0 && isset($cards['meta']['count']) && $cards['meta']['count'] > 0): ?>
+        <?php if (count($cards) > 0 && isset($cards['meta']['count']) && $cards['meta']['count'] > 0) : ?>
             <div class="table-wrapper">
                 <table class="data table table-acquired-payments-cards recent" id="acquired-payments-cards-table">
                     <thead>
-                    <tr>
-                        <th class="col cctype"><?= $block->escapeHtml(__('Type')) ?></th>
-                        <th class="col ccnumber"><?= $block->escapeHtml(__('Number')) ?></th>
-                        <th class="col ccexpires"><?= $block->escapeHtml(__('Expires At')) ?></th>
-                    </tr>
+                        <tr>
+                            <th class="col cctype"><?= $block->escapeHtml(__('Type')) ?></th>
+                            <th class="col ccnumber"><?= $block->escapeHtml(__('Number')) ?></th>
+                            <th class="col ccexpires"><?= $block->escapeHtml(__('Expires At')) ?></th>
+                        </tr>
                     </thead>
                     <tbody>
-                    <?php foreach ($cards['data'] as $k => $creditCard): ?>
-                        <tr>
-                            <td data-th="<?= $block->escapeHtml(__('Type')) ?>" class="col">
-                                <?= $block->escapeHtml(ucwords($creditCard['card']['scheme'])) ?>
-                            </td>
-                            <td data-th="<?= $block->escapeHtml(__('Number')) ?>" class="col">
-                                <?= $block->escapeHtml(__('ends with %1', $creditCard['card']['number'])) ?>
-                            </td>
-                            <td data-th="<?= $block->escapeHtml(__('Expires At')) ?>" class="col">
-                                <?= $block->escapeHtml($creditCard['card']['expiry_month'] . "/" . $creditCard['card']['expiry_year']) ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
+                        <?php foreach ($cards['data'] as $k => $creditCard) : ?>
+                            <tr>
+                                <td data-th="<?= $block->escapeHtml(__('Type')) ?>" class="col">
+                                    <?= $block->escapeHtml(ucwords($creditCard['card']['scheme'])) ?>
+                                </td>
+                                <td data-th="<?= $block->escapeHtml(__('Number')) ?>" class="col">
+                                    <?= $block->escapeHtml(__('ends with %1', $creditCard['card']['number'])) ?>
+                                </td>
+                                <td data-th="<?= $block->escapeHtml(__('Expires At')) ?>" class="col">
+                                    <?= $block->escapeHtml($creditCard['card']['expiry_month'] . "/" . $creditCard['card']['expiry_year']) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
-        <?php else: ?>
+        <?php else : ?>
             <div class="message info empty">
                 <span><?= $block->escapeHtml(__('You do not have any saved cards.')) ?></span>
             </div>

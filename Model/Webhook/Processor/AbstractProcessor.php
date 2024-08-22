@@ -4,7 +4,7 @@
  *
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  *
  *
@@ -19,6 +19,8 @@ use Acquired\Payments\Exception\Webhook\WebhookIntegrityException;
 use Acquired\Payments\Gateway\Config\Basic;
 use Acquired\Payments\Model\Webhook\Context as WebhookContext;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order;
+use Acquired\Payments\Ui\Method\PayByBankProvider;
 
 /**
  * @class AbstractProcessor
@@ -62,7 +64,7 @@ abstract class AbstractProcessor
         }
 
         if (!$this->validateIntegrity($webhookData, $webhookHash)) {
-            // throw new WebhookIntegrityException(__('Failed integrity check.'));
+            throw new WebhookIntegrityException(__('Failed integrity check.'));
         }
 
         return $this->process($webhookData, $webhookHash, $webhookVersion);
@@ -124,11 +126,11 @@ abstract class AbstractProcessor
     {
         // check payment method and status
         $payment = $order->getPayment();
-        if ($payment->getMethod() !== 'acquired_pay_by_bank') {
+        if ($payment->getMethod() !== PayByBankProvider::CODE) {
             return false;
         }
 
-        if ($order->getState() !== 'payment_review') {
+        if ($order->getState() !== Order::STATE_PAYMENT_REVIEW) {
             return false;
         }
 

@@ -5,22 +5,31 @@ declare(strict_types=1);
 namespace Acquired\Payments\Service;
 
 use Acquired\Payments\Api\Data\MultishippingInterface;
+use Acquired\Payments\Api\Data\MultishippingResultInterface;
+use Acquired\Payments\Api\Data\MultishippingResultInterfaceFactory;
 use Acquired\Payments\Model\MultishippingRepository;
 use Acquired\Payments\Model\MultishippingFactory;
+use Acquired\Payments\Ui\Method\PayByBankProvider;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\Search\SearchCriteriaBuilderFactory;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
 
 class MultishippingService
 {
+
+    const MULTISHIPPING_ORDER_ID_SUFFIX = '-ACQM';
 
     public function __construct(
         private readonly CartRepositoryInterface $cartRepository,
         private readonly MultishippingFactory $multishippingFactory,
         private readonly MultishippingRepository $multishippingRepository,
+        private readonly MultishippingResultInterfaceFactory $multishippingResultFactory,
         private readonly SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
-        private readonly FilterBuilder $filterBuilder
+        private readonly FilterBuilder $filterBuilder,
+        private readonly OrderCollectionFactory $orderCollectionFactory
     ) {
     }
 
@@ -143,7 +152,7 @@ class MultishippingService
 
     /**
      * Get multishipping by order
-     * @param int $order
+     * @param $order
      * @return MultishippingInterface|null
      */
     public function getMultishippingByOrder($order): ?MultishippingInterface
@@ -179,7 +188,7 @@ class MultishippingService
      * @param string|null $transactionId
      * @return array
      */
-    public function reserveOrderIds(Quote $quote, string $sessionId = null, string $transactionId = null) : array
+    public function reserveOrderIds(Quote $quote, string $sessionId = null, string $transactionId = null): array
     {
         $reservedIds = [];
         if ($quote->getIsMultiShipping()) {
@@ -190,8 +199,8 @@ class MultishippingService
             }
 
             foreach ($shippingAddresses as $address) {
-                if($address->getAddressType() == 'shipping') {
-                    $multishipping = $this->getMultishippingByAddressId( (int) $address->getId());
+                if ($address->getAddressType() == 'shipping') {
+                    $multishipping = $this->getMultishippingByAddressId((int) $address->getId());
                     if (!$multishipping) {
                         $multishipping = $this->multishippingFactory->create();
                     }
@@ -205,10 +214,10 @@ class MultishippingService
                     $multishipping->setCustomerId((int) $quote->getCustomerId());
                     $multishipping->setQuoteAddressId((int) $address->getId());
 
-                    if($sessionId) {
+                    if ($sessionId) {
                         $multishipping->setAcquiredSessionId($sessionId);
                     }
-                    if($transactionId) {
+                    if ($transactionId) {
                         $multishipping->setAcquiredTransactionId($transactionId);
                         $multishipping->setStatus('processing');
                     }
@@ -224,5 +233,91 @@ class MultishippingService
         $quote->save();
 
         return $reservedIds;
+    }
+
+    /**
+     * Process multishipping orders by candidate order ids and returns a data object with needed information
+     * @param array $candidateOrderIds
+     * @return MultishippingResultInterface
+     */
+    public function processMultishippingOrdersByIds(array $candidateOrderIds): MultishippingResultInterface
+    {
+        if (empty($candidateOrderIds)) {
+            return $this->processMultishippingOrders([]);
+        }
+
+        $orderCollection = $this->orderCollectionFactory->create();
+        $orderCollection->addFieldToSelect("*");
+        $orderCollection->addFieldToFilter('entity_id', ['in' => $candidateOrderIds]);
+
+        return $this->processMultishippingOrders($orderCollection->getItems());
+    }
+
+    /**
+     * Process multishipping orders by candidate order increment ids and returns a data object with needed information
+     * @param array $candidateOrderIds
+     * @return MultishippingResultInterface
+     */
+    public function processMultishippingOrdersByIncrementIds(array $candidateOrderIds): MultishippingResultInterface
+    {
+        if (empty($candidateOrderIds)) {
+            return $this->processMultishippingOrders([]);
+        }
+
+        $orderCollection = $this->orderCollectionFactory->create();
+        $orderCollection->addFieldToSelect("*");
+        $orderCollection->addFieldToFilter('increment_id', ['in' => $candidateOrderIds]);
+
+        return $this->processMultishippingOrders($orderCollection->getItems());
+    }
+
+    /**
+     * Process multishipping orders
+     * @param array $orders
+     * @return MultishippingResultInterface
+     */
+    protected function processMultishippingOrders($orders): MultishippingResultInterface
+    {
+        $customerId = null;
+        $multishippingOrderId = null;
+        $resultOrders = [];
+        $amount = 0;
+
+        foreach ($orders as $order) {
+            if ($order->getPayment()->getMethod() == PayByBankProvider::CODE && $order->getState() == Order::STATE_PAYMENT_REVIEW) {
+
+                // check if multishipping is processed already
+                $multishippingItem = $this->getMultishippingByReservedOrderId($order->getIncrementId());
+
+                if ($multishippingItem->getStatus() == MultishippingInterface::STATUS_SUCCESS) {
+                    continue;
+                }
+
+                $multishippingItem->setOrderId($order->getId());
+                $multishippingItem->save();
+
+                if (!$multishippingOrderId) {
+                    $multishippingOrderId = $order->getIncrementId() . self::MULTISHIPPING_ORDER_ID_SUFFIX;
+                }
+                if (!$customerId && $order->getCustomerId()) {
+                    $customerId = (int) $order->getCustomerId();
+                }
+                $resultOrders[] = $order;
+                $amount += $order->getGrandTotal();
+            }
+        }
+
+        $result = $this->multishippingResultFactory->create();
+        if($multishippingOrderId) {
+            $result->setMultishippingOrderId($multishippingOrderId);
+        }
+        if($customerId) {
+            $result->setCustomerId($customerId);
+        }
+        $result->setCandidateOrders($orders);
+        $result->setOrders($resultOrders);
+        $result->setAmount($amount);
+
+        return $result;
     }
 }

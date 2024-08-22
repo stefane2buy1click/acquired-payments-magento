@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -18,6 +18,8 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\NotFoundException;
+use Acquired\Payments\Service\MultishippingService;
+use Acquired\Payments\Controller\Hosted\Context as HostedContext;
 
 /**
  * @class Response
@@ -36,9 +38,15 @@ class Response extends AbstractAction implements CsrfAwareActionInterface, HttpP
         'hash' // A calculated hash value which can be used to verify the integrity of the data.
     ];
 
+    /**
+     * Constructs a valid hosted redirect response or throws an exception if invalid data is received
+     *
+     * @param array $postData
+     * @return void
+     */
     protected function constructResponse($postData)
     {
-        $appKey = "";
+        $appKey = $this->hostedContext->basicConfig->getApiSecret();
 
         foreach (self::PARAMS as $param) {
             if (!isset($postData[$param])) {
@@ -55,18 +63,34 @@ class Response extends AbstractAction implements CsrfAwareActionInterface, HttpP
             'hash' => $postData['hash']
         ];
 
-        // status.transaction_id.order_id.timestamp
-        $hashBody = implode('.', [$response['status'], $response['transaction_id'], $response['order_id'], $response['timestamp']]);
-        // hash sha256
-        $hashBody = hash('sha256', $hashBody);
-        $hashBody = $hashBody . $appKey;
-        $hashBody = hash('sha256', $hashBody);
+        $hash = $this->generateHashFromResponse($response, $appKey);
 
-        if ($hashBody !== $response['hash']) {
-            //throw new Exception('Hash verification failed');
+        if ($hash !== $response['hash']) {
+            throw new Exception('Hash verification failed');
         }
 
         return $response;
+    }
+
+    /**
+     * Generates hash to validate the data integrity
+     * For more see: https://docs.acquired.com/docs/set-up-integrate#merchant-handles-the-customer-redirect
+     *
+     * @param array $response
+     * @param string $appKey
+     * @return string
+     */
+    private function generateHashFromResponse(array $response, string $appKey) : string {
+        // Concatenate status.transaction_id.order_id.timestamp
+        $hashBody = implode('', [$response['status'], $response['transaction_id'], $response['order_id'], $response['timestamp']]);
+        // hash the output using sha256
+        $hashBody = hash('sha256', $hashBody);
+        // append app_key
+        $hashBody = $hashBody . $appKey;
+        // hash the output using sha256 again
+        $hashBody = hash('sha256', $hashBody);
+
+        return $hashBody;
     }
 
     /**
@@ -84,16 +108,16 @@ class Response extends AbstractAction implements CsrfAwareActionInterface, HttpP
             $this->hostedContext->coreRegistry->register('acquired_hosted_response', $response);
 
             $incrementId = $response['order_id'];
-            if(strpos($incrementId, '-ACQR-')) {
-                // replace everything starting from '-ACQR-' with ''
-                $incrementId = substr($incrementId, 0, strpos($incrementId, '-ACQR-'));
+            if (strpos($incrementId, HostedContext::HOSTED_ORDER_ID_RETRY_IDENTIFIER)) {
+                // replace everything starting from the order retry identifier with ''
+                $incrementId = substr($incrementId, 0, strpos($incrementId, HostedContext::HOSTED_ORDER_ID_RETRY_IDENTIFIER));
             }
 
             $multishippingFlag = false;
-            // if order ends with "-ACQM" then it is multishipping
-            // remove the "-ACQM" and get the order id
-            if(strpos($incrementId, '-ACQM') !== false) {
-                $incrementId = substr($incrementId, 0, strpos($incrementId, '-ACQM'));
+            // if order ends with multishipping suffix then it is multishipping
+            // remove the suffix and get the order id
+            if (strpos($incrementId, MultishippingService::MULTISHIPPING_ORDER_ID_SUFFIX) !== false) {
+                $incrementId = substr($incrementId, 0, strpos($incrementId, MultishippingService::MULTISHIPPING_ORDER_ID_SUFFIX));
                 $multishippingFlag = true;
             }
 
@@ -103,7 +127,7 @@ class Response extends AbstractAction implements CsrfAwareActionInterface, HttpP
             }
 
             // sets http context value to authorized to bypass display issue with header
-            if($order->getCustomerId()) {
+            if ($order->getCustomerId()) {
                 $this->hostedContext->httpContext->setValue(\Magento\Customer\Model\Context::CONTEXT_AUTH, true, false);
             }
 
@@ -111,13 +135,13 @@ class Response extends AbstractAction implements CsrfAwareActionInterface, HttpP
                 in_array($response['status'], ['success', 'settled', 'executed'])
             ) {
                 // check if multi shipping
-                if($multishippingFlag) {
+                if ($multishippingFlag) {
                     $multishippingItem = $this->hostedContext->multishippingService->getMultishippingByReservedOrderId($order->getIncrementId());
                     $multishippingItems = $this->hostedContext->multishippingService->getMultishippingByTransactionId($multishippingItem->getAcquiredTransactionId());
 
                     $this->validateMultishippingInformation($multishippingFlag, $order, $multishippingItem, $multishippingItems);
 
-                    foreach($multishippingItems as $multishippingItem) {
+                    foreach ($multishippingItems as $multishippingItem) {
                         $multishippingItem->setStatus("success");
                         $multishippingItem->save();
                     }
@@ -141,7 +165,7 @@ class Response extends AbstractAction implements CsrfAwareActionInterface, HttpP
 
             $resultPage = $this->hostedContext->pageFactory->create();
             return $resultPage;
-        } catch (NotFoundException|NoSuchEntityException $e) {
+        } catch (NotFoundException | NoSuchEntityException $e) {
             $this->hostedContext->logger->critical(__('Hosted response order not found: %1', $e->getMessage()), ['exception' => $e]);
             $this->messageManager->addErrorMessage('Order not found');
 
@@ -153,18 +177,19 @@ class Response extends AbstractAction implements CsrfAwareActionInterface, HttpP
         }
     }
 
-    protected function validateMultishippingInformation($multishippingFlag, $order, $multishippingItem, $multishippingItems) {
-        if(!$multishippingFlag) {
+    protected function validateMultishippingInformation($multishippingFlag, $order, $multishippingItem, $multishippingItems)
+    {
+        if (!$multishippingFlag) {
             throw new \Exception("Not multishipping checkout flow");
         }
 
         $quote = $order->getQuote();
 
-        if($quote && !$quote->getIsMultiShipping()) {
+        if ($quote && !$quote->getIsMultiShipping()) {
             throw new \Exception("Invalid order type");
         }
 
-        if(!count($multishippingItems)) {
+        if (!count($multishippingItems)) {
             throw new \Exception("Could not find linked multishipping orders");
         }
     }

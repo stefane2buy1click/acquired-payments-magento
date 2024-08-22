@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -20,7 +21,8 @@ class CreateOrdersSingleObserver implements \Magento\Framework\Event\ObserverInt
 
     public function __construct(
         private readonly MultishippingService $multishippingService
-    ) {}
+    ) {
+    }
 
     /**
      * @param Observer $observer
@@ -42,7 +44,7 @@ class CreateOrdersSingleObserver implements \Magento\Framework\Event\ObserverInt
         if (in_array($paymentProviderCode, $supportedMethods)) {
             $this->multishippingService->reserveOrderIds($quote);
 
-            if($address->getId()) {
+            if ($address->getId()) {
                 $multishipping = $this->multishippingService->getMultishippingByAddressId((int) $address->getId());
 
                 if ($multishipping) {
@@ -51,7 +53,7 @@ class CreateOrdersSingleObserver implements \Magento\Framework\Event\ObserverInt
                     $multishipping->setOrderId($order->getId());
                     $multishipping->save();
 
-                    if($multishipping->getAcquiredTransactionId()) {
+                    if ($multishipping->getAcquiredTransactionId()) {
                         $order->setMultishippingAcquiredTransactionId($multishipping->getAcquiredTransactionId());
                         $payment->setLastTransId($multishipping->getAcquiredTransactionId());
                         $payment->setTransactionId($multishipping->getAcquiredTransactionId());

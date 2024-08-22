@@ -3,15 +3,12 @@
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-<!--    <head>
-        <css src="Acquired_Payments::css/some.css"/>
-    </head>-->
     <body>
         <referenceBlock name="order_create_billing_form">
             <action method="setMethodFormTemplate">

@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -29,7 +30,7 @@ class CardAuthorizeBuilder implements BuilderInterface
         private readonly LoggerInterface $logger,
         private readonly CheckoutSession $checkoutSession,
         private readonly MultishippingService $multishippingService
-    ){
+    ) {
     }
 
     /**
@@ -50,7 +51,6 @@ class CardAuthorizeBuilder implements BuilderInterface
             return [
                 'transaction_id' => ($order->getMultishippingAcquiredTransactionId()) ?: $payment->getAdditionalInformation('transaction_id')
             ];
-
         } catch (Exception $e) {
             $message = __('Authorize build failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);

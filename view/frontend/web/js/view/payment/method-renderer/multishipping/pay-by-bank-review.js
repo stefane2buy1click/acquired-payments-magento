@@ -1,7 +1,7 @@
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 define([
@@ -36,7 +36,7 @@ define([
             imports: {
                 onActiveChange: 'active'
             },
-            isPlaceOrderActionAllowed: function() {
+            isPlaceOrderActionAllowed: function () {
                 return true;
             }
         },
@@ -51,7 +51,7 @@ define([
 
             var self = this;
 
-            $('#review-button').on('click', function() {
+            $('#review-button').on('click', function () {
                 $('#review-button').prop('disabled', true);
                 self.placeOrder();
             });

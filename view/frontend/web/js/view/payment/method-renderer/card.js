@@ -1,7 +1,7 @@
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 define(
@@ -70,7 +70,7 @@ define(
                     // generate nonce with math random and Date.now()
                     self.nonce = self.generateNonce();
                     acquired = new Acquired(window.checkoutConfig.payment[self.getCode()].public_key);
-                }).catch(function(error) {
+                }).catch(function (error) {
                     messageList.addErrorMessage({
                         message: $t('There was an issue initializing the Acquired payment method.')
                     });
@@ -79,7 +79,7 @@ define(
                 return this;
             },
 
-            generateNonce: function() {
+            generateNonce: function () {
                 const generateHash = function (input) {
                     let hash = 0;
                     for (let i = 0; i < input.length; i++) {
@@ -154,7 +154,7 @@ define(
                     placeholder.find('iframe').remove();
                 }
 
-                if(placeholder.find('iframe').length) {
+                if (placeholder.find('iframe').length) {
                     return;
                 }
 
@@ -179,7 +179,7 @@ define(
              */
             _initAcquiredComponent: function (options) {
                 this.acquiredComponent = acquired.components(options);
-                this.acquiredComponent.create('payment', {style: this.getStyle()}).mount(this.placeholder);
+                this.acquiredComponent.create('payment', { style: this.getStyle() }).mount(this.placeholder);
             },
 
             /**
@@ -212,8 +212,8 @@ define(
              * Get 3ds challenge window size
              * @returns {String}
              */
-            getTdsWindowSize: function() {
-           	    return window.checkoutConfig.payment[this.getCode()].tds_window_size;
+            getTdsWindowSize: function () {
+                return window.checkoutConfig.payment[this.getCode()].tds_window_size;
             },
 
             /**
@@ -256,7 +256,7 @@ define(
              * @returns {Promise<void>}
              */
             getConfirmParams: async function () {
-                let getConfirmParamsUrl = urlBuilder.createUrl('/acquired/confirm-params/' + this.nonce,{});
+                let getConfirmParamsUrl = urlBuilder.createUrl('/acquired/confirm-params/' + this.nonce, {});
                 try {
                     let confirmParams = await storage.post(getConfirmParamsUrl);
                     if (_.indexOf(confirmParams, 0) !== -1) {
@@ -299,7 +299,7 @@ define(
                     await this.updateSession();
                 } catch (error) {
                     messageList.addErrorMessage({
-                        message:error.message || $t('Payment session expired, please re-enter the payment data.')
+                        message: error.message || $t('Payment session expired, please re-enter the payment data.')
                     });
                     await this.initAcquired(true);
                     this.resetPlaceOrder();
@@ -319,22 +319,22 @@ define(
                                     }
                                 }
                             ).fail(
-                            function () {
-                                self.afterPlaceOrder();
-                                self.resetPlaceOrder();
-                            }
-                        ).always(
-                            function () {
-                                self.afterPlaceOrder();
-                                self.isPlaceOrderActionAllowed(true);
-                            }
-                        );
+                                function () {
+                                    self.afterPlaceOrder();
+                                    self.resetPlaceOrder();
+                                }
+                            ).always(
+                                function () {
+                                    self.afterPlaceOrder();
+                                    self.isPlaceOrderActionAllowed(true);
+                                }
+                            );
                     }
                     return true;
 
                 } catch (error) {
                     messageList.addErrorMessage({
-                        message:error.message || $t('An unexpected error occurred during the order placement. Please try again later.')
+                        message: error.message || $t('An unexpected error occurred during the order placement. Please try again later.')
                     });
                     this.resetPlaceOrder();
                     try {
@@ -377,9 +377,9 @@ define(
                             response.data.status === 'blocked' ||
                             response.data.status === 'tds_failed') {
 
-                            let message =  $t('Your credit card was ' + response.data.status);
+                            let message = $t('Your credit card was ' + response.data.status);
 
-                            if(response.data.status === 'tds_failed') {
+                            if (response.data.status === 'tds_failed') {
                                 message = $t('Payment failed as your card is not enrolled in 3-D Secure. Please check with your bank.');
                             }
 
@@ -387,7 +387,7 @@ define(
                         }
                     }
 
-                    if(response.isTdsPending()){
+                    if (response.isTdsPending()) {
                         await this.handleTdsChallenge(response.data.redirect_url);
                     }
 

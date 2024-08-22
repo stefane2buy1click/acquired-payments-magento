@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -106,9 +107,9 @@ class Gateway
     /**
      * Get all APIs
      *
-     * @return array
+     * @return PaymentLinks
      */
-    public function getPaymentLinks() : PaymentLinks
+    public function getPaymentLinks(): PaymentLinks
     {
         return $this->paymentLinks;
     }

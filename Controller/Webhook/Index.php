@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
 /**
  *
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  *
  *
@@ -78,7 +79,8 @@ class Index extends Action implements HttpPostActionInterface, CsrfAwareActionIn
             $webhookHash = $this->getRequest()->getHeader(self::WEBHOOK_HASH_KEY);
             $webhookData = $this->serializer->unserialize($requestPayload);
 
-            $this->logger->debug(__('Webhook %1 action request', $webhookData['webhook_type']),
+            $this->logger->debug(
+                __('Webhook %1 action request', $webhookData['webhook_type']),
                 [
                     'payload' => $requestPayload,
                     'version' => $webhookVersion,
@@ -96,16 +98,15 @@ class Index extends Action implements HttpPostActionInterface, CsrfAwareActionIn
                 $processorResponse
             );
 
-            $this->logger->debug(__('Webhook %1 process response', $webhookData['webhook_type']),
+            $this->logger->debug(
+                __('Webhook %1 process response', $webhookData['webhook_type']),
                 [
                     'response' => $this->serializer->serialize($processorResponse)
                 ]
             );
-
-        } catch (WebhookVersionException|WebhookIntegrityException|InvalidArgumentException $e) {
+        } catch (WebhookVersionException | WebhookIntegrityException | InvalidArgumentException $e) {
             $this->logger->critical(__('Webhook process failed: %1', $e->getMessage()), ['exception' => $e]);
             $this->handleException($result, $e);
-
         } catch (Exception $e) {
             $this->logger->critical(__('Webhook process failed: %1', $e->getMessage()), ['exception' => $e]);
             $this->setResponseData(
@@ -136,8 +137,7 @@ class Index extends Action implements HttpPostActionInterface, CsrfAwareActionIn
         string $message,
         mixed $data = null,
         int $httpStatusCode = HttpResponse::STATUS_CODE_200,
-    ): void
-    {
+    ): void {
         $result->setData([
             'success' => $success,
             'message' => $message,

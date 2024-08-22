@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -48,15 +50,19 @@ class Overview extends Template
     }
 
 
-
-    public function willPayWithAcquired()
+    /**
+     * Check if the customer will pay with acquired
+     * @return bool
+     */
+    public function willPayWithAcquired(): bool
     {
         $quote = $this->helper->getQuote();
         $paymentMethod = $quote->getPayment()->getMethod();
         return (strpos($paymentMethod, "acquired_") === 0);
     }
 
-    public function getPaymentMethod() {
+    public function getPaymentMethod()
+    {
         $quote = $this->helper->getQuote();
         return $quote->getPayment()->getMethod();
     }
@@ -75,8 +81,7 @@ class Overview extends Template
     public function hasPaymentMethod()
     {
 
-        if (!$this->willPayWithAcquired())
-        {
+        if (!$this->willPayWithAcquired()) {
             return "false";
         }
 
@@ -104,5 +109,4 @@ class Overview extends Template
     {
         return  $this->serializer->serialize($this->getCheckoutConfig());
     }
-
 }

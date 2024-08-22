@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -16,7 +17,8 @@ use Acquired\Payments\Exception\Command\BuilderException;
 use Acquired\Payments\Gateway\Config\Card\Config as CardConfig;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Checkout\Model\Session as CheckoutSession;use Acquired\Payments\Service\MultishippingService;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Acquired\Payments\Service\MultishippingService;
 
 class CardCaptureBuilder implements BuilderInterface
 {
@@ -54,7 +56,6 @@ class CardCaptureBuilder implements BuilderInterface
                 'amount' => ['amount' => SubjectReader::readAmount($buildSubject)],
                 'is_captured' => $this->cardConfig->getCaptureAction()
             ];
-
         } catch (Exception $e) {
             $message = __('Capture build failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);

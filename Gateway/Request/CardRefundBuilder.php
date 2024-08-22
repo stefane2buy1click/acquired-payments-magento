@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -16,6 +17,7 @@ use Psr\Log\LoggerInterface;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Acquired\Payments\Exception\Command\BuilderException;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 
 class CardRefundBuilder implements BuilderInterface
 {
@@ -24,8 +26,9 @@ class CardRefundBuilder implements BuilderInterface
      * @param LoggerInterface $logger
      */
     public function __construct(
-        private readonly LoggerInterface $logger
-    ){
+        private readonly LoggerInterface $logger,
+        private readonly PriceCurrencyInterface $priceCurrency
+    ) {
     }
 
     /**
@@ -55,10 +58,9 @@ class CardRefundBuilder implements BuilderInterface
                 'grand_total' => $order->getGrandTotal(),
                 'reference' => [
                     'reference' => $payment->getOrder()?->getIncrementId(),
-                    'amount' => number_format((float) $amount, 2, '.', '')
+                    'amount' => $this->priceCurrency->roundPrice($amount)
                 ]
             ];
-
         } catch (Exception $e) {
             $message = __('Refund build failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);

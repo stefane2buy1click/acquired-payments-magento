@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -32,4 +32,16 @@ interface SessionInterface
      * @return SessionDataInterface
      */
     public function update(string $nonce, string $sessionId, array $customData = null): SessionDataInterface;
+
+
+    /**
+     * Prepare the session for purchase, consuming the nonce and incrementing the order id
+     *
+     * @param string $nonce
+     * @throws SessionException
+     * @return void
+     */
+    public function prepareForPurchase(string $nonce) : void;
+
+
 }

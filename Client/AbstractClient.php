@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -30,8 +31,6 @@ abstract class AbstractClient
     private const TEST_API_URL = 'https://test-api.acquired.com/v1/';
 
     private const CACHE_KEY = 'acquired_access_token';
-
-    private const CACHE_LIFETIME = 3599;
 
     /**
      * @param CacheInterface $cache
@@ -86,9 +85,9 @@ abstract class AbstractClient
             $client = $this->clientFactory->create();
             $options = [
                 'headers' => [
-                  'Authorization' => 'Bearer ' . $this->getAuthorizationToken(),
-                  'Accept' => 'application/json',
-                  'Content-Type' => 'application/json'
+                    'Authorization' => 'Bearer ' . $this->getAuthorizationToken(),
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json'
                 ]
             ];
 
@@ -107,7 +106,6 @@ abstract class AbstractClient
                     'response' => $result
                 ]
             );
-
         } catch (AuthorizationException $authorizationException) {
             $message = __('API authorization failed: %1', $authorizationException->getMessage());
             $this->logger->critical(
@@ -119,7 +117,6 @@ abstract class AbstractClient
             );
 
             throw $authorizationException;
-
         } catch (GuzzleRequestException $requestException) {
             $message = __('API request failed!');
             $this->logger->critical(
@@ -134,7 +131,6 @@ abstract class AbstractClient
             );
 
             throw new ApiCallException($message);
-
         } catch (Throwable $e) {
             $message = __('Unexpected API error: %1', $e->getMessage());
             $this->logger->critical(
@@ -149,7 +145,6 @@ abstract class AbstractClient
         }
 
         return is_string($result) ? $this->serializer->unserialize($result) : null;
-
     }
 
     /**
@@ -180,10 +175,9 @@ abstract class AbstractClient
                 }
 
                 $token = $authorization['access_token'];
-                $this->cache->save($token, self::CACHE_KEY, [], self::CACHE_LIFETIME);
-            }  catch (GuzzleRequestException $requestException) {
+                $this->cache->save($token, self::CACHE_KEY, [], $authorization['expires_in']);
+            } catch (GuzzleRequestException $requestException) {
                 throw new AuthorizationException(__($requestException->getMessage()));
-
             } catch (Throwable $e) {
                 throw new AuthorizationException(__($e->getMessage()));
             }

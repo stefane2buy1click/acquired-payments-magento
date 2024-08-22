@@ -3,7 +3,7 @@
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 -->
@@ -41,6 +41,8 @@
 
                 <redirect_url>acquired/hosted/redirect</redirect_url>
                 <webhook_url>acquired/webhook/index</webhook_url>
+
+                <bank_only>0</bank_only>
 
                 <payment_action>authorize</payment_action>
                 <can_authorize>1</can_authorize>

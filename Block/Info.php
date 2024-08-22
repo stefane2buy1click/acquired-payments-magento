@@ -1,24 +1,30 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Block;
 
-use Magento\Framework\Phrase;
 use Magento\Payment\Block\ConfigurableInfo;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Payment\Gateway\ConfigInterface;
-use Magento\Framework\Serialize\Serializer\Serialize;
 
 class Info extends ConfigurableInfo
 {
+
+    const CARD_TYPE_VISA = "visa";
+    const CARD_TYPE_AMEX = "amex";
+    const CARD_TYPE_MC = "mc";
+    const CARD_TYPE_MASTERCARD = "mc";
+    const CARD_TYPE_MAESTRO = "maestro";
+
     protected $_template = 'info/info.phtml';
 
     /**
@@ -59,20 +65,20 @@ class Info extends ConfigurableInfo
     public function getCardIcon(string $card): string
     {
         switch (strtolower($card)) {
-            case "visa":
+            case self::CARD_TYPE_VISA:
                 $image = $this->assetRepository->getUrl("Acquired_Payments::img/card-icons/visa.png");
                 break;
-            case "amex":
+            case self::CARD_TYPE_AMEX:
                 $image = $this->assetRepository->getUrl("Acquired_Payments::img/card-icons/amex.png");
                 break;
-            case "mc":
+            case self::CARD_TYPE_MC:
                 $image = $this->assetRepository->getUrl("Acquired_Payments::img/card-icons/mastercard.png");
                 break;
-            case "maestro":
+            case self::CARD_TYPE_MAESTRO:
                 $image = $this->assetRepository->getUrl("Acquired_Payments::img/card-icons/maestro.png");
                 break;
-            case "mastercard":
-                $image = $this->assetRepository->getUrl("Acquired_Payments::img/card-icons/maestro.png");
+            case self::CARD_TYPE_MASTERCARD:
+                $image = $this->assetRepository->getUrl("Acquired_Payments::img/card-icons/mastercard.png");
                 break;
             default:
                 $image = $this->assetRepository->getUrl("Acquired_Payments::img/card-icons/generic.png");

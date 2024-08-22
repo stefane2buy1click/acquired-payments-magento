@@ -2,6 +2,15 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.0.0-beta.2] - Beta version
+
+## Added
+- Hosted checkout is now configurable to allow bank payments only or allow other solutions also
+- CSP policy change has been added to store configuration allowing to enforce report_only mode for Magento CSP
+- Minor bug fixes
+- Code quality improvements
+- Updated license
+
 ## [1.0.0-beta.1] - Beta version
 
 ## Added
@@ -12,7 +21,6 @@ All notable release changes to this project will be documented in this file.
 - Retry mechanism for hosted checkout to retry payment or restore checkout session
 - Small code improvements
 - Updated author and license information
-- Change versioning format
 
 ## [0.9.4] - Beta version
 

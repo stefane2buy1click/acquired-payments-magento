@@ -1,7 +1,7 @@
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -111,7 +111,7 @@ define(
                     fullScreenLoader.stopLoader();
                     this.isPlaceOrderActionAllowed(true);
                     messageList.addErrorMessage({
-                        message:error.message || $t('An error occurred while placing the order.')
+                        message: error.message || $t('An error occurred while placing the order.')
                     });
                     return false;
                 }
@@ -125,12 +125,12 @@ define(
 
             afterPlaceOrder: function (redirectUrl) {
                 try {
-                    if(typeof redirectUrl == 'string' && redirectUrl.length > 0 && redirectUrl.indexOf('https') === 0) {
+                    if (typeof redirectUrl == 'string' && redirectUrl.length > 0 && redirectUrl.indexOf('https') === 0) {
                         window.location.replace(redirectUrl.replace(/\\/g, ""));
                     }
                 } catch (e) {
                     messageList.addErrorMessage({
-                        message:error.message || $t('An error occurred while redirecting to the payment gateway.')
+                        message: error.message || $t('An error occurred while redirecting to the payment gateway.')
                     });
                 }
             },

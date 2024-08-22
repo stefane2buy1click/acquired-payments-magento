@@ -4,7 +4,7 @@
  *
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  *
  *
@@ -12,18 +12,10 @@
 
 namespace Acquired\Payments\Model\Webhook\Processor;
 
-use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Api\OrderManagementInterface;
-use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\Service\InvoiceService;
-use Magento\Framework\DB\Transaction;
-use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
-use Magento\Sales\Model\Order\Email\Sender\OrderSender;
+
 use Magento\Sales\Model\Order;
-use Acquired\Payments\Gateway\Config\Basic;
+use Acquired\Payments\Service\MultishippingService;
+use Acquired\Payments\Controller\Hosted\Context as HostedContext;
 
 /**
  * @class StatusUpdateProcessor
@@ -46,15 +38,15 @@ class MultishippingStatusUpdateProcessor extends AbstractProcessor
         $webhookBody = $webhookData['webhook_body'];
         $incrementId = $webhookBody['order_id'];
 
-        // replace everything ending wit '-ACQM' with ''
-        if(strpos($incrementId, '-ACQM')) {
-            $incrementId = substr($incrementId, 0, strpos($incrementId, '-ACQM'));
+        // replace everything ending with multishipping suffix with ''
+        if (strpos($incrementId, MultishippingService::MULTISHIPPING_ORDER_ID_SUFFIX)) {
+            $incrementId = substr($incrementId, 0, strpos($incrementId, MultishippingService::MULTISHIPPING_ORDER_ID_SUFFIX));
         }
 
         // if retry, remove retry signature
-        if(strpos($incrementId, '-ACQR-')) {
-            // replace everything starting from '-ACQR-' with ''
-            $incrementId = substr($incrementId, 0, strpos($incrementId, '-ACQR-'));
+        if (strpos($incrementId, HostedContext::HOSTED_ORDER_ID_RETRY_IDENTIFIER)) {
+            // replace everything starting from the order retry identifier with ''
+            $incrementId = substr($incrementId, 0, strpos($incrementId, HostedContext::HOSTED_ORDER_ID_RETRY_IDENTIFIER));
         }
 
         $order = $this->getOrderByIncrementId($incrementId);
@@ -70,7 +62,7 @@ class MultishippingStatusUpdateProcessor extends AbstractProcessor
         $multishippingItems = $this->webhookContext->multishippingService->getMultishippingByTransactionId($multishippingItem->getAcquiredTransactionId());
 
         $incrementIds = [];
-        foreach($multishippingItems as $mi) {
+        foreach ($multishippingItems as $mi) {
             $incrementIds[] = $mi->getQuoteReservedId();
         }
 
@@ -93,11 +85,12 @@ class MultishippingStatusUpdateProcessor extends AbstractProcessor
         return $this->createResponse(__('No action required for order #%1.', $incrementId));
     }
 
-    protected function bulkCancelOrders($orders, $transactionId) {
+    protected function bulkCancelOrders($orders, $transactionId)
+    {
         $success = true;
         $messages = [];
 
-        foreach($orders as $order) {
+        foreach ($orders as $order) {
             $invoiceResult = $this->cancelOrder($order, $order->getIncrementId(), $transactionId);
             $success = $success && $invoiceResult['success'];
             $messages[] = $invoiceResult;
@@ -111,11 +104,12 @@ class MultishippingStatusUpdateProcessor extends AbstractProcessor
         return $response;
     }
 
-    public function bulkInvoiceOrders($orders, $transactionId) {
+    public function bulkInvoiceOrders($orders, $transactionId)
+    {
         $success = true;
         $messages = [];
 
-        foreach($orders as $order) {
+        foreach ($orders as $order) {
             $order->setState(Order::STATE_PROCESSING);
             $invoiceResult = $this->invoiceOrder($order, $order->getIncrementId(), $transactionId);
             $success = $success && $invoiceResult['success'];
@@ -129,5 +123,4 @@ class MultishippingStatusUpdateProcessor extends AbstractProcessor
 
         return $response;
     }
-
 }

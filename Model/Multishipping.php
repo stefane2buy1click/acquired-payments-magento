@@ -59,6 +59,22 @@ class Multishipping extends AbstractModel implements MultishippingInterface
     /**
      * @inheritDoc
      */
+    public function getOrderId()
+    {
+        return $this->getData(self::ORDER_ID);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setOrderId($id)
+    {
+        return $this->setData(self::ORDER_ID, $id);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getQuoteReservedId() : ?string
     {
         return $this->getData(self::QUOTE_RESERVED_ID);

@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -25,7 +26,7 @@ class PaymentDetailsHandler implements HandlerInterface
      */
     public function __construct(
         private readonly LoggerInterface $logger
-    ){
+    ) {
     }
 
     /**
@@ -48,14 +49,12 @@ class PaymentDetailsHandler implements HandlerInterface
             $payment->setIsTransactionClosed(false);
             $payment->setIsTransactionPending(true);
             $payment->setShouldCloseParentTransaction(false);
-
         } catch (Exception $e) {
             $message = __('Payment Details Handler failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);
 
             throw new HandlerException($message);
         }
-
     }
 
     /**
@@ -66,7 +65,7 @@ class PaymentDetailsHandler implements HandlerInterface
      */
     private function setTransactionDataToPayment(OrderPaymentInterface $payment, array $transaction): void
     {
-        if(!empty($transaction['link_id'])) {
+        if (!empty($transaction['link_id'])) {
             $payment->setTransactionId($transaction['link_id']);
         }
     }
@@ -80,7 +79,7 @@ class PaymentDetailsHandler implements HandlerInterface
      */
     private function setAdditionalTransactionData(OrderPaymentInterface $payment, array $transaction): void
     {
-        if(!empty($transaction['link_id'])) {
+        if (!empty($transaction['link_id'])) {
             $payment->setAdditionalInformation('link_id', $transaction['link_id']);
         }
     }

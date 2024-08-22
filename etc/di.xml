@@ -3,7 +3,7 @@
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 -->
@@ -14,8 +14,9 @@
     <preference for="Acquired\Payments\Api\Data\AcquiredCustomerInterface" type="Acquired\Payments\Model\AcquiredCustomer"/>
     <preference for="Acquired\Payments\Api\AcquiredCustomerRepositoryInterface" type="Acquired\Payments\Model\AcquiredCustomerRepository"/>
     <preference for="Acquired\Payments\Api\MultishippingRepositoryInterface" type="Acquired\Payments\Model\MultishippingRepository"/>
-	  <preference for="Acquired\Payments\Api\Data\MultishippingInterface" type="Acquired\Payments\Model\Multishipping"/>
-	  <preference for="Acquired\Payments\Api\Data\MultishippingSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
+    <preference for="Acquired\Payments\Api\Data\MultishippingInterface" type="Acquired\Payments\Model\Multishipping"/>
+    <preference for="Acquired\Payments\Api\Data\MultishippingSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
+    <preference for="Acquired\Payments\Api\Data\MultishippingResultInterface" type="Acquired\Payments\Model\Data\MultishippingResult"/>
 
     <type name="Acquired\Payments\Model\Api\AcquiredSession">
         <arguments>
@@ -36,6 +37,10 @@
 
     <type name="Magento\Framework\Session\SessionStartChecker">
         <plugin name="acquired_payment_session_start_checker_plugin" type="Acquired\Payments\Plugin\Framework\SessionStartCheckerPlugin"/>
+    </type>
+
+    <type name="Magento\Csp\Api\ModeConfigManagerInterface">
+        <plugin name="acquired_payments_plugin_csp_config_manager_plugin" type="Acquired\Payments\Plugin\Csp\ConfigManagerPlugin"/>
     </type>
 
 

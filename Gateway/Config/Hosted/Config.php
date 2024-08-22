@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
 /**
  *
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  *
  *
@@ -26,6 +27,7 @@ use Acquired\Payments\Model\StoreConfigResolver;
 class Config extends GatewayConfig
 {
     private const KEY_ACTIVE = 'active';
+    private const KEY_BANK_ONLY = 'bank_only';
     private const KEY_TITLE = 'title';
     private const KEY_REDIRECT_URL = 'redirect_url';
     private const KEY_WEBHOOK_URL = 'webhook_url';
@@ -37,14 +39,13 @@ class Config extends GatewayConfig
      * @param string $pathPattern
      */
     public function __construct(
-       ScopeConfigInterface $scopeConfig,
-       private readonly StoreConfigResolver $storeConfigResolver,
-       string $methodCode = null,
-       string $pathPattern = parent::DEFAULT_PATH_PATTERN,
-   )
-   {
-       parent::__construct($scopeConfig, $methodCode, $pathPattern);
-   }
+        ScopeConfigInterface $scopeConfig,
+        private readonly StoreConfigResolver $storeConfigResolver,
+        string $methodCode = null,
+        string $pathPattern = parent::DEFAULT_PATH_PATTERN,
+    ) {
+        parent::__construct($scopeConfig, $methodCode, $pathPattern);
+    }
 
     /**
      * Check is payment method active.
@@ -57,6 +58,19 @@ class Config extends GatewayConfig
     public function isActive(int $storeId = null): bool
     {
         return (bool) $this->getValue(self::KEY_ACTIVE, $storeId ?? $this->storeConfigResolver->getStoreId());
+    }
+
+    /**
+     * Check if only bank payments should be processed?
+     *
+     * @param int|null $storeId
+     * @return bool
+     * @throws InputException
+     * @throws NoSuchEntityException
+     */
+    public function isBankOnly(int $storeId = null): bool
+    {
+        return (bool) $this->getValue(self::KEY_BANK_ONLY, $storeId ?? $this->storeConfigResolver->getStoreId());
     }
 
     /**
@@ -97,5 +111,4 @@ class Config extends GatewayConfig
     {
         return $this->getValue(self::KEY_WEBHOOK_URL, $storeId ?? $this->storeConfigResolver->getStoreId());
     }
-
 }

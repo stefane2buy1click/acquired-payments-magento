@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -16,7 +17,9 @@ $title = $payment->getMethodInstance()->getTitle();
 
 <h4>
     <span class="acquired-title">Acquired Payments - <?= $title; ?></span>
-    <span class="acquired-card-icon"><img width="50" height="30" src="<?= $this->getCardIcon((string)$payment->getCcType()); ?>" title="<?= $title; ?>" alt="<?= $payment->getCcType(); ?>"/></span>
+    <?php if($payment->getMethod() == 'acquired_card') : ?>
+    <span class="acquired-card-icon"><img width="50" height="30" src="<?= $this->getCardIcon((string)$payment->getCcType()); ?>" title="<?= $title; ?>" alt="<?= $payment->getCcType(); ?>" /></span>
+    <?php endif; ?>
 </h4>
 
 <table class="admin__table-secondary order-information-table payment-info">
@@ -24,9 +27,17 @@ $title = $payment->getMethodInstance()->getTitle();
         <tr>
             <th><?php echo __('Transaction Id'); ?></th>
             <td class="acquired-value">
-                <?= $this->getPaymentInformation($payment, 'transaction_id'); ?>
+                <?= $payment->getLastTransId(); ?>
             </td>
         </tr>
+
+        <?php if($payment->getMethod() == 'acquired_card') : ?>
+            <tr>
+                <th><?php echo __('Transaction Type'); ?></th>
+                <td class="acquired-value">
+                    <?= $this->getPaymentInformation($payment, 'transaction_type'); ?>
+                </td>
+            </tr>
         <tr>
             <th><?php echo __('Last 4'); ?></th>
             <td class="acquired-value">
@@ -57,5 +68,6 @@ $title = $payment->getMethodInstance()->getTitle();
                 <?= $this->getPaymentInformation($payment, 'cvv'); ?>
             </td>
         </tr>
+        <?php endif; ?>
     </tbody>
 </table>

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -8,9 +9,9 @@ declare(strict_types=1);
  * See LICENSE.txt for license details.
  */
 
- ?>
- <?php if($block->getJsIntegrityHash()): ?>
+?>
+<?php if ($block->getJsIntegrityHash()) : ?>
     <script type="text/javascript">
         window.ACQUIRED_JS_INTEGRITY_HASH = "<?= $block->escapeJs($block->getJsIntegrityHash()); ?>";
     </script>
- <?php endif; ?>
+<?php endif; ?>
