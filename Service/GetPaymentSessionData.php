@@ -141,11 +141,9 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
                 }
 
                 if ($this->cardConfig->isCreateCardEnabled()) {
-                    $payload['payment']['create_card'] = true;
                     $payload['save_card'] = true;
                     $payload['payment']['reference'] = $this->customerSession->getCustomerId();
                 } else {
-                    $payload['payment']['create_card'] = false;
                     $payload['save_card'] = false;
                 }
             }
