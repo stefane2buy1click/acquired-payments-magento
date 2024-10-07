@@ -17,7 +17,9 @@ define(
         'Magento_Checkout/js/model/url-builder',
         'Magento_Ui/js/model/messageList',
         'Magento_Checkout/js/action/redirect-on-success',
-        'acquiredLoader'
+        'acquiredLoader',
+        'Magento_Checkout/js/model/payment/additional-validators',
+        'Magento_CheckoutAgreements/js/model/agreement-validator'
     ],
     function (
         _,
@@ -31,7 +33,9 @@ define(
         urlBuilder,
         messageList,
         redirectOnSuccessAction,
-        acquiredLoader
+        acquiredLoader,
+        additionalValidators,
+        agreementValidator
     ) {
         'use strict';
 
@@ -336,6 +340,10 @@ define(
              */
             placeOrder: async function (key) {
                 let self = this;
+
+                if (!this.validate() || !additionalValidators.validate() || !agreementValidator.validate()) {
+                    return false;
+                }
 
                 fullScreenLoader.startLoader();
                 this.isPlaceOrderActionAllowed(false);

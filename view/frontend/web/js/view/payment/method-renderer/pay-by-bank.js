@@ -18,7 +18,8 @@ define(
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/checkout-data',
-        'Magento_Checkout/js/model/payment/additional-validators'
+        'Magento_Checkout/js/model/payment/additional-validators',
+        'Magento_CheckoutAgreements/js/model/agreement-validator'
     ],
     function (
         $,
@@ -32,7 +33,8 @@ define(
         selectPaymentMethodAction,
         customer,
         checkoutData,
-        additionalValidators
+        additionalValidators,
+        agreementValidator
     ) {
         'use strict';
 
@@ -89,6 +91,10 @@ define(
 
                 var self = this,
                     placeOrder;
+
+                if (!this.validate() || !additionalValidators.validate() || !agreementValidator.validate()) {
+                    return false;
+                }
 
                 fullScreenLoader.startLoader();
                 this.isPlaceOrderActionAllowed(false);

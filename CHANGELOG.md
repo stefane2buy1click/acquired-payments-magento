@@ -2,6 +2,13 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.0.0-beta.8] - Beta version
+- Fix issue where additional validators for placing an order would not get called in some cases
+- Fix issue where checkout agreements validator was not called
+- Add support for checkout agreements validation for multishipping
+- Fix issue where a wrong parameter type for webhook handlings would cause excess error logs in system logs
+- Removed excess acquired logging
+
 ## [1.0.0-beta.7] - Beta version
 - Fix issue where create_card flag would save the customer card even with the box unticked
 
