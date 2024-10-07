@@ -16,7 +16,8 @@ use Acquired\Payments\Exception\Command\BuilderException;
 use Acquired\Payments\Gateway\Config\Card\Config as CardConfig;
 use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
-use Magento\Checkout\Model\Session as CheckoutSession;use Acquired\Payments\Service\MultishippingService;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Acquired\Payments\Service\MultishippingService;
 
 class CardCaptureBuilder implements BuilderInterface
 {

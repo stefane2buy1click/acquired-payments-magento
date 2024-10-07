@@ -62,7 +62,7 @@ abstract class AbstractProcessor
         }
 
         if (!$this->validateIntegrity($webhookData, $webhookHash)) {
-            // throw new WebhookIntegrityException(__('Failed integrity check.'));
+            throw new WebhookIntegrityException(__('Failed integrity check.'));
         }
 
         return $this->process($webhookData, $webhookHash, $webhookVersion);

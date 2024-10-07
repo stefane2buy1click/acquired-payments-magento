@@ -47,7 +47,7 @@ class OrderStatusUpdateProcessor extends AbstractProcessor
         $incrementId = $webhookBody['order_id'];
 
         if(strpos($incrementId, '-ACQR-')) {
-            // replace everything starting from 'R-' with ''
+            // replace everything starting from '-ACQR-' with ''
             $incrementId = substr($incrementId, 0, strpos($incrementId, '-ACQR-'));
         }
 
