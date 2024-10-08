@@ -22,7 +22,7 @@ class Info extends ConfigurableInfo
     const CARD_TYPE_VISA = "visa";
     const CARD_TYPE_AMEX = "amex";
     const CARD_TYPE_MC = "mc";
-    const CARD_TYPE_MASTERCARD = "mc";
+    const CARD_TYPE_MASTERCARD = "mastercard";
     const CARD_TYPE_MAESTRO = "maestro";
 
     protected $_template = 'info/info.phtml';
