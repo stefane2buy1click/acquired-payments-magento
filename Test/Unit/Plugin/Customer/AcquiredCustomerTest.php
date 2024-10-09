@@ -169,7 +169,8 @@ class AcquiredCustomerTest extends TestCase
     }
 
     /**
-     * For customer which doesnt exist in the acquired customer repository, the setAcquiredCustomerId method should handle the NoSuchEntityException
+     * For customer which doesnt exist in the acquired customer repository, the customer will never have an acquired customer ID set
+     * to the extension attributes
      *
      * @return void
      */
@@ -181,9 +182,11 @@ class AcquiredCustomerTest extends TestCase
         $customerMock->method('getId')
             ->willReturn(456);
 
-        $this->loggerMock->expects($this->once())
-            ->method('critical')
-            ->with($this->isInstanceOf(Phrase::class), $this->arrayHasKey('exception'));
+        $customerMock->expects($this->never())
+            ->method('setExtensionAttributes');
+
+        $this->extensionFactoryMock->expects($this->never())
+            ->method('create');
 
         // Expect logging of the exception message
         $acquiredCustomer->afterGet($this->customerRepositoryMock, $customerMock);
