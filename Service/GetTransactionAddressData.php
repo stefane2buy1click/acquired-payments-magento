@@ -299,9 +299,9 @@ class GetTransactionAddressData {
     }
 
     /**
-     * Undocumented function
+     * Returns phone code by country id if possible
      *
-     * @param [type] $countryId
+     * @param string|null $countryId
      * @return string|null
      */
     public function getPhoneCodeByCountryId($countryId): ?string
