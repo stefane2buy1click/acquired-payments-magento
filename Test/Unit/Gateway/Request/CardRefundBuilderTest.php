@@ -11,16 +11,13 @@ declare(strict_types=1);
 
 namespace Acquired\Payments\Test\Unit\Gateway\Request;
 
-use PHPUnit\Framework\TestCase;
 use Acquired\Payments\Gateway\Request\CardRefundBuilder;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
-use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
-use Magento\Sales\Model\Order\Payment;
-use Magento\Sales\Model\Order;
 use Acquired\Payments\Exception\Command\BuilderException;
+use Acquired\Payments\Test\Unit\Gateway\Request\AbstractBuilderTestCase;
 
-class CardRefundBuilderTest extends TestCase
+class CardRefundBuilderTest extends AbstractBuilderTestCase
 {
     private $loggerMock;
     private $priceCurrencyMock;
@@ -34,23 +31,6 @@ class CardRefundBuilderTest extends TestCase
             $this->loggerMock,
             $this->priceCurrencyMock
         );
-    }
-
-    private function getPaymentMock(float $amount, $transactionId): PaymentDataObjectInterface
-    {
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getGrandTotal')->willReturn($amount);
-        $orderMock->method('getIncrementId')->willReturn('100000001');
-
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-        $paymentMock->method('getAdditionalInformation')->with('transaction_id')->willReturn($transactionId);
-        $paymentMock->method('getLastTransId')->willReturn($transactionId);
-
-        $paymentDataObjectMock = $this->createMock(PaymentDataObjectInterface::class);
-        $paymentDataObjectMock->method('getPayment')->willReturn($paymentMock);
-
-        return $paymentDataObjectMock;
     }
 
     public function testBuildSuccess()
@@ -67,7 +47,7 @@ class CardRefundBuilderTest extends TestCase
         $this->priceCurrencyMock->method('round')->willReturn(50.0);
 
         $buildSubject = [
-            'payment' => $this->getPaymentMock(50.0, '123'),
+            'payment' => $this->getPaymentMock(50.0, '123', '100000001'),
             'amount' => 50.0
         ];
 
@@ -82,7 +62,7 @@ class CardRefundBuilderTest extends TestCase
         $this->expectExceptionMessage('Amount should be provided');
 
         $buildSubject = [
-            'payment' => $this->getPaymentMock(0, '123'),
+            'payment' => $this->getPaymentMock(0, '123', '100000001'),
         ];
 
         $this->cardRefundBuilder->build($buildSubject);
@@ -95,7 +75,7 @@ class CardRefundBuilderTest extends TestCase
         $this->expectExceptionMessage('Refunds cannot be processed if the amount is 0. Please specify a different amount.');
 
         $buildSubject = [
-            'payment' => $this->getPaymentMock(0, '123'),
+            'payment' => $this->getPaymentMock(0, '123', '100000001'),
             'amount' => 0
         ];
 
@@ -109,7 +89,7 @@ class CardRefundBuilderTest extends TestCase
         $this->expectExceptionMessage('Missing transaction_id');
 
         $buildSubject = [
-            'payment' => $this->getPaymentMock(100, null),
+            'payment' => $this->getPaymentMock(100, null, '100000001'),
             'amount' => 100
         ];
 

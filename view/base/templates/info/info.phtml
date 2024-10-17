@@ -24,7 +24,7 @@ $title = $payment->getMethodInstance()->getTitle();
 
 <p>Acquired Payments - <?= $title; ?></p>
 
-<?php if (!$isQuote && $payment->getMethod() == 'acquired_card') : ?>
+<?php if (!$isQuote && $payment->getMethod() == \Acquired\Payments\Ui\Method\CardProvider::CODE) : ?>
     <p><img width="50" height="30" src="<?= $this->getCardIcon((string)$payment->getCcType()); ?>" title="<?= $title; ?>" alt="<?= $payment->getCcType(); ?>" /></p>
     <p>Last 4: **** <?= $this->getPaymentInformation($payment, 'cc_last4'); ?></p>
 <?php endif; ?>

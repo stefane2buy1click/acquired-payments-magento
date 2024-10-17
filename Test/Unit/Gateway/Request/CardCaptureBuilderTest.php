@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace Acquired\Payments\Test\Unit\Gateway\Request;
 
-use PHPUnit\Framework\TestCase;
 use Acquired\Payments\Gateway\Request\CardCaptureBuilder;
 use Acquired\Payments\Gateway\Config\Card\Config as CardConfig;
 use Psr\Log\LoggerInterface;
@@ -21,8 +20,9 @@ use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order;
 use Acquired\Payments\Exception\Command\BuilderException;
+use Acquired\Payments\Test\Unit\Gateway\Request\AbstractBuilderTestCase;
 
-class CardCaptureBuilderTest extends TestCase
+class CardCaptureBuilderTest extends AbstractBuilderTestCase
 {
     private $cardCaptureBuilder;
     private $cardConfigMock;
@@ -53,23 +53,17 @@ class CardCaptureBuilderTest extends TestCase
 
     public function testBuildSuccess()
     {
+        $transactionId = '12345';
         $expectedResult = [
-            'transaction_id' => '12345',
+            'transaction_id' => $transactionId,
             'amount' => ['amount' => 100.00],
             'is_captured' => false
         ];
 
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($this->orderMock);
-        $paymentMock->method('getAdditionalInformation')->with('transaction_id')->willReturn('12345');
-        $paymentMock->method('getTransactionId')->willReturn('12345');
-
-        $this->paymentDOInterfaceMock->method('getPayment')->willReturn($paymentMock);
-        $this->paymentDOInterfaceMock->method('getOrder')->willReturn($this->orderMock);
-
+        $paymentDataMock = $this->getPaymentMock(100.00, $transactionId, '100000001');
 
         $buildSubject = [
-            'payment' => $this->paymentDOInterfaceMock,
+            'payment' => $paymentDataMock,
             'amount'  => 100.00
         ];
 
@@ -83,16 +77,9 @@ class CardCaptureBuilderTest extends TestCase
         $this->expectException(BuilderException::class);
         $this->expectExceptionMessage('Amount should be provided');
 
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($this->orderMock);
-        $paymentMock->method('getAdditionalInformation')->with('transaction_id')->willReturn('123456');
-        $paymentMock->method('getTransactionId')->willReturn('12345');
-
-        $this->paymentDOInterfaceMock->method('getPayment')->willReturn($paymentMock);
-        $this->paymentDOInterfaceMock->method('getOrder')->willReturn($this->orderMock);
-
+        $paymentDataMock = $this->getPaymentMock(null, '123456', '100000001');
         $buildSubject = [
-            'payment' => $this->paymentDOInterfaceMock
+            'payment' => $paymentDataMock
         ];
 
         $this->loggerMock->expects($this->once())->method('critical');

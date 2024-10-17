@@ -107,6 +107,7 @@ class Multishipping extends AbstractHelper
                     $quote = $this->quoteRepository->get($this->quoteId);
                 }
             } catch (\Exception $e) {
+                throw $e;
             }
         }
 

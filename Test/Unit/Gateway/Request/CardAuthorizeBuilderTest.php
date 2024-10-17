@@ -9,7 +9,6 @@ declare(strict_types=1);
  * See LICENSE.txt for license details.
  */
 
-use PHPUnit\Framework\TestCase;
 use Acquired\Payments\Gateway\Request\CardAuthorizeBuilder;
 use Psr\Log\LoggerInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
@@ -17,9 +16,9 @@ use Acquired\Payments\Service\MultishippingService;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order;
 use Acquired\Payments\Exception\Command\BuilderException;
-use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
+use Acquired\Payments\Test\Unit\Gateway\Request\AbstractBuilderTestCase;
 
-class CardAuthorizeBuilderTest extends TestCase
+class CardAuthorizeBuilderTest extends AbstractBuilderTestCase
 {
     private $loggerMock;
     private $checkoutSessionMock;
@@ -41,19 +40,13 @@ class CardAuthorizeBuilderTest extends TestCase
 
     public function testBuildSuccess()
     {
-        $paymentDataMock = $this->createMock(PaymentDataObjectInterface::class);
-        $paymentMock = $this->createMock(Payment::class);
-        $orderMock = $this->createMock(Order::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-        $paymentMock->method('getAdditionalInformation')->with('transaction_id')->willReturn('123456');
-        $paymentDataMock->method('getPayment')->willReturn($paymentMock);
-        $paymentDataMock->method('getOrder')->willReturn($orderMock);
-
+        $transactionId = '123456';
+        $paymentDataMock = $this->getPaymentMock(100.00, $transactionId, '100000001');
         $buildSubject = ['payment' => $paymentDataMock];
 
         $result = $this->cardAuthorizeBuilder->build($buildSubject);
 
-        $this->assertEquals(['transaction_id' => '123456'], $result);
+        $this->assertEquals(['transaction_id' => $transactionId], $result);
     }
 
     public function testBuildMissingTransactionId()
@@ -61,14 +54,8 @@ class CardAuthorizeBuilderTest extends TestCase
         $this->expectException(BuilderException::class);
         $this->expectExceptionMessage('Missing transaction_id');
 
-        $paymentDataMock = $this->createMock(PaymentDataObjectInterface::class);
-        $paymentMock = $this->createMock(Payment::class);
-        $orderMock = $this->createMock(Order::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-        $paymentMock->method('getAdditionalInformation')->with('transaction_id')->willReturn(null);
-        $paymentDataMock->method('getPayment')->willReturn($paymentMock);
-        $paymentDataMock->method('getOrder')->willReturn($orderMock);
-
+        $transactionId = null;
+        $paymentDataMock = $this->getPaymentMock(100.00, $transactionId, '100000001');
         $buildSubject = ['payment' => $paymentDataMock];
 
         $this->cardAuthorizeBuilder->build($buildSubject);

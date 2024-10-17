@@ -1,6 +1,16 @@
 <?xml version="1.0"?>
+<!--
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Acquired_Payments" setup_version="0.9.7">
+    <module name="Acquired_Payments" setup_version="0.9.8">
         <sequence>
             <module name="Magento_Sales"/>
             <module name="Magento_Payment"/>
