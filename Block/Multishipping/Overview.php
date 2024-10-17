@@ -56,15 +56,25 @@ class Overview extends Template
      */
     public function willPayWithAcquired(): bool
     {
-        $quote = $this->helper->getQuote();
-        $paymentMethod = $quote->getPayment()->getMethod();
-        return (strpos($paymentMethod, "acquired_") === 0);
+        try {
+            $quote = $this->helper->getQuote();
+            $paymentMethod = $quote->getPayment()->getMethod();
+            return (strpos($paymentMethod, "acquired_") === 0);
+        } catch (\Exception $e) {
+            // quote is not found, we cannot determine if the customer will pay with acquired so we return false
+            return false;
+        }
     }
 
     public function getPaymentMethod()
     {
-        $quote = $this->helper->getQuote();
-        return $quote->getPayment()->getMethod();
+        try {
+            $quote = $this->helper->getQuote();
+            return $quote->getPayment()->getMethod();
+        } catch (\Exception $e) {
+            // quote is not found, we cannot determine if the customer will pay with acquired so we return an empty string
+            return "";
+        }
     }
 
     public function getStoreCode()
