@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
 /**
  *
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  *
  *
@@ -44,14 +45,13 @@ class Config extends GatewayConfig
      * @param string $pathPattern
      */
     public function __construct(
-       ScopeConfigInterface $scopeConfig,
-       private readonly StoreConfigResolver $storeConfigResolver,
-       string $methodCode = null,
-       string $pathPattern = parent::DEFAULT_PATH_PATTERN,
-   )
-   {
-       parent::__construct($scopeConfig, $methodCode, $pathPattern);
-   }
+        ScopeConfigInterface $scopeConfig,
+        private readonly StoreConfigResolver $storeConfigResolver,
+        string $methodCode = null,
+        string $pathPattern = parent::DEFAULT_PATH_PATTERN,
+    ) {
+        parent::__construct($scopeConfig, $methodCode, $pathPattern);
+    }
 
     /**
      * Check is payment method active.
@@ -63,7 +63,7 @@ class Config extends GatewayConfig
      */
     public function isActive(int $storeId = null): bool
     {
-        return $this->getValue(self::KEY_ACTIVE, $storeId ?? $this->storeConfigResolver->getStoreId());
+        return (bool) $this->getValue(self::KEY_ACTIVE, $storeId ?? $this->storeConfigResolver->getStoreId());
     }
 
     /**
@@ -102,7 +102,7 @@ class Config extends GatewayConfig
      */
     public function isCreateCardEnabled(int $storeId = null): bool
     {
-        return $this->getValue(self::KEY_CREATE_CARD, $storeId ?? $this->storeConfigResolver->getStoreId());
+        return (bool) $this->getValue(self::KEY_CREATE_CARD, $storeId ?? $this->storeConfigResolver->getStoreId());
     }
 
     /**
@@ -115,7 +115,7 @@ class Config extends GatewayConfig
      */
     public function isTdsActive(int $storeId = null): bool
     {
-        return $this->getValue(self::KEY_TDS_ACTIVE, $storeId ?? $this->storeConfigResolver->getStoreId());
+        return (bool) $this->getValue(self::KEY_TDS_ACTIVE, $storeId ?? $this->storeConfigResolver->getStoreId());
     }
 
     /**

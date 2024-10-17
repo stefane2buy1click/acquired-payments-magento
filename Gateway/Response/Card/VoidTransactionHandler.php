@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -25,7 +26,7 @@ class VoidTransactionHandler implements HandlerInterface
      */
     public function __construct(
         private readonly LoggerInterface $logger
-    ){
+    ) {
     }
 
     /**
@@ -41,13 +42,11 @@ class VoidTransactionHandler implements HandlerInterface
             $payment = SubjectReader::readPayment($handlingSubject)->getPayment();
             $payment->setLastTransId($response['transaction_id']);
             $payment->setAdditionalInformation('transaction_id', $response['transaction_id']);
-
         } catch (Exception $e) {
             $message = __('Void Transaction Handler failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);
 
             throw new HandlerException($message);
         }
-
     }
 }

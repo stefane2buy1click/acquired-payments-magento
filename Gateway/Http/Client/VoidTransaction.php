@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -57,7 +58,6 @@ class VoidTransaction implements ClientInterface
                     'response' => $transaction
                 ]
             );
-
         } catch (Exception $e) {
             $this->logger->critical(
                 __('Void transaction request failed: %1', $e->getMessage()),

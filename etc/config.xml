@@ -44,6 +44,8 @@
                 <redirect_url>acquired/hosted/redirect</redirect_url>
                 <webhook_url>acquired/webhook/index</webhook_url>
 
+                <bank_only>0</bank_only>
+
                 <payment_action>authorize</payment_action>
                 <can_authorize>1</can_authorize>
                 <can_capture>1</can_capture>

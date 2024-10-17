@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -21,18 +21,10 @@ class Response extends Template
 
     protected $_template = "Acquired_Payments::hosted/response.phtml";
 
-    /** @var \Acquired\Payments\Helper\Multishipping */
-    private $helper;
-
     /**
      * @var \Magento\Sales\Model\OrderFactory
      */
     private $orderFactory;
-
-    /**
-     * @var \Magento\Framework\Serialize\SerializerInterface
-     */
-    private $serializer;
 
     /**
      * @var \Magento\Framework\Registr
@@ -45,25 +37,21 @@ class Response extends Template
     private $encryptor;
 
     /**
-     * @param \Acquired\Payments\Helper\Multishipping $helper
-     * @param \Magento\Framework\Serialize\SerializerInterface $serializer
+     * @param Magento\Sales\Model\OrderFactory $orderFactory
+     * @param Magento\Framework\Registry $coreRegistry
      * @param Magento\Framework\Encryption\EncryptorInterface $encryptor
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param array $data
      */
     public function __construct(
-        \Acquired\Payments\Helper\Multishipping $helper,
         \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Magento\Framework\Serialize\SerializerInterface $serializer,
         \Magento\Framework\Registry $coreRegistry,
         EncryptorInterface $encryptor,
         \Magento\Framework\View\Element\Template\Context $context,
         array $data = []
     ) {
         parent::__construct($context, $data);
-        $this->helper = $helper;
         $this->orderFactory = $orderFactory;
-        $this->serializer = $serializer;
         $this->encryptor = $encryptor;
         $this->coreRegistry = $coreRegistry;
     }

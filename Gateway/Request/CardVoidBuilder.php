@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -23,7 +24,7 @@ class CardVoidBuilder extends CardAuthorizeBuilder
      */
     public function __construct(
         private readonly LoggerInterface $logger
-    ){
+    ) {
     }
 
     /**
@@ -43,7 +44,6 @@ class CardVoidBuilder extends CardAuthorizeBuilder
                 'transaction_id' => $payment->getAdditionalInformation('transaction_id'),
                 'reference' => ['reference' => $payment->getOrder()?->getIncrementId()]
             ];
-
         } catch (Exception $e) {
             $message = __('Void build failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);

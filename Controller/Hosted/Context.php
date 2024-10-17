@@ -5,13 +5,12 @@ declare(strict_types=1);
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Controller\Hosted;
 
-use Exception;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -35,6 +34,8 @@ use Acquired\Payments\Client\Gateway;
  */
 class Context
 {
+
+    const HOSTED_ORDER_ID_RETRY_IDENTIFIER = '-ACQR-';
 
     public function __construct(
         public readonly PageFactory $pageFactory,

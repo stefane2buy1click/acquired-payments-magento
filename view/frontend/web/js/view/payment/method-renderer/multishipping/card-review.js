@@ -1,7 +1,7 @@
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 define([
@@ -36,7 +36,7 @@ define([
             imports: {
                 onActiveChange: 'active'
             },
-            isPlaceOrderActionAllowed: function() {
+            isPlaceOrderActionAllowed: function () {
                 return true;
             }
         },
@@ -53,18 +53,18 @@ define([
 
             var self = this;
 
-            acquiredLoader.waitForAcquired.then(function() {
+            acquiredLoader.waitForAcquired.then(function () {
                 self.acquired = new Acquired(window.checkoutConfig.payment[self.getCode()].public_key);
                 self.initAcquired();
 
-                $('#review-button').on('click', function() {
+                $('#review-button').on('click', function () {
                     $('#review-button').prop('disabled', true);
-                    self.placeOrder().then(function(result) {
-                        if(result) {
+                    self.placeOrder().then(function (result) {
+                        if (result) {
                             fullScreenLoader.stopLoader();
 
-                            self.updateMultishippingData(function(response) {
-                                if(!response) {
+                            self.updateMultishippingData(function (response) {
+                                if (!response) {
                                     $('#review-button').prop('disabled', false);
                                 } else {
                                     $('#review-order-form').submit();
@@ -76,7 +76,7 @@ define([
                                 message: $t('An unexpected error occurred during the order placement. Please try again later.')
                             });
                         }
-                    }).catch(function(error) {
+                    }).catch(function (error) {
                         $('#review-button').prop('disabled', false);
                         messageList.addErrorMessage({
                             message: error.message || $t('An unexpected error occurred during the order placement. Please try again later.')
@@ -88,7 +88,7 @@ define([
             return this;
         },
 
-        updateMultishippingData: function(callback) {
+        updateMultishippingData: function (callback) {
             var self = this;
             var serviceUrl = '/' + urlBuilder.createUrl('/acquired/multishipping', {});
 
@@ -103,7 +103,7 @@ define([
                 dataType: 'json',
                 global: true,
                 contentType: 'application/json',
-            }).always(function(result) {
+            }).always(function (result) {
                 callback(result);
             });
         },

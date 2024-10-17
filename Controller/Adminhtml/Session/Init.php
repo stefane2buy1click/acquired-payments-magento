@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -11,6 +12,7 @@ declare(strict_types=1);
 namespace Acquired\Payments\Controller\Adminhtml\Session;
 
 use Magento\Backend\App\Action;
+use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\App\CsrfAwareActionInterface;
@@ -36,7 +38,7 @@ class Init extends Action implements CsrfAwareActionInterface, HttpPostActionInt
      * @param acquiredSession $acquiredSession
      */
     public function __construct(
-        Action\Context $context,
+        Context $context,
         JsonFactory $resultJsonFactory,
         SessionInterface $acquiredSession
     ) {
@@ -55,8 +57,8 @@ class Init extends Action implements CsrfAwareActionInterface, HttpPostActionInt
         $resultJson = $this->resultJsonFactory->create();
 
         $result = $this->acquiredSession->get(
-             $this->getRequest()->getParam('nonce'),
-             $this->getRequest()->getParam('custom_data')
+            $this->getRequest()->getParam('nonce'),
+            $this->getRequest()->getParam('custom_data')
         );
 
         return $resultJson->setData($result);
@@ -67,7 +69,7 @@ class Init extends Action implements CsrfAwareActionInterface, HttpPostActionInt
         return true;
     }
 
-    public function createCsrfValidationException(RequestInterface $request): ? InvalidRequestException
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
         return null;
     }

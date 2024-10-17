@@ -1,15 +1,15 @@
 define([
-        'underscore',
-        'jquery',
-        'ko',
-        'uiComponent',
-        'acquiredLoader',
-        'mage/translate',
-        'Magento_Checkout/js/model/full-screen-loader',
-        'mage/storage',
-        'Magento_Checkout/js/model/url-builder',
-        'Magento_Ui/js/model/messageList',
-        'Magento_Checkout/js/action/redirect-on-success'
+    'underscore',
+    'jquery',
+    'ko',
+    'uiComponent',
+    'acquiredLoader',
+    'mage/translate',
+    'Magento_Checkout/js/model/full-screen-loader',
+    'mage/storage',
+    'Magento_Checkout/js/model/url-builder',
+    'Magento_Ui/js/model/messageList',
+    'Magento_Checkout/js/action/redirect-on-success'
 ], function (
     _,
     $,

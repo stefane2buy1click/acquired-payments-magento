@@ -9,50 +9,44 @@ define(
     function ($, urlBuilder, storage, customerData, alert) {
         'use strict';
 
-        var showError = function(message, e)
-        {
-            alert( { content: message });
+        var showError = function (message, e) {
+            alert({ content: message });
 
             if (typeof e != "undefined")
                 console.error(e);
         };
 
-        return function (callback, onAuthenticationRequired)
-        {
+        return function (callback, onAuthenticationRequired) {
             customerData.invalidate(['cart']);
 
             var serviceUrl = urlBuilder.createUrl('/acquired/payments/place_multishipping_order', {});
 
             return storage.post(serviceUrl)
-            .then(function(result, b, c)
-            {
-                var response = null;
+                .then(function (result, b, c) {
+                    var response = null;
 
-                try
-                {
-                    response = JSON.parse(result);
-                }
-                catch (e)
-                {
-                    return showError("Sorry, a server side error has occurred.", e);
-                }
+                    try {
+                        response = JSON.parse(result);
+                    }
+                    catch (e) {
+                        return showError("Sorry, a server side error has occurred.", e);
+                    }
 
-                if (response.error)
-                    return showError(response.error, response.error);
+                    if (response.error)
+                        return showError(response.error, response.error);
 
-                if (response.redirect)
-                    return $.mage.redirect(response.redirect);
+                    if (response.redirect)
+                        return $.mage.redirect(response.redirect);
 
-                if (response.authenticate)
-                    return onAuthenticationRequired(response.authenticate);
+                    if (response.authenticate)
+                        return onAuthenticationRequired(response.authenticate);
 
-                return showError(response, response);
-            })
-            .fail(function(result)
-            {
-                return showError("Sorry, a server side error has occurred.", result);
-            })
-            .always(callback);
+                    return showError(response, response);
+                })
+                .fail(function (result) {
+                    return showError("Sorry, a server side error has occurred.", result);
+                })
+                .always(callback);
         };
     }
 );

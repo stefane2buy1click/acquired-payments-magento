@@ -94,7 +94,7 @@ class StatusUpdateProcessor extends AbstractProcessor
     {
         // check payment method and status
         $payment = $order->getPayment();
-        if ($payment->getMethod() !== 'acquired_pay_by_bank') {
+        if ($payment->getMethod() !== \Acquired\Payments\Ui\Method\PayByBankProvider::CODE) {
             return false;
         }
 

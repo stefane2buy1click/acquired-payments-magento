@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -28,7 +29,8 @@ class QuoteCollectTotalsAfterObserver implements ObserverInterface
         protected BackendModelSession $backendQuoteSession,
         protected State $state,
         protected LoggerInterface $logger
-    ) {}
+    ) {
+    }
 
     /**
      * Flag to prevent infinite loop
@@ -41,7 +43,7 @@ class QuoteCollectTotalsAfterObserver implements ObserverInterface
         $quote = $observer->getEvent()->getQuote();
         $nonce = $this->getCheckoutSession()->getAcquiredSessionNonce();
         $sessionId = $this->getCheckoutSession()->getAcquiredSessionId();
-        if($nonce && $sessionId && $quote->getPayment()->getMethod() == CardProvider::CODE && !$this->updatingSessionFlag) {
+        if ($nonce && $sessionId && $quote->getPayment()->getMethod() == CardProvider::CODE && !$this->updatingSessionFlag) {
             $this->updatingSessionFlag = true;
             try {
                 $this->acquiredSession->update($nonce, $sessionId);

@@ -1,14 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Plugin\Sales;
+
+use Acquired\Payments\Ui\Method\PayByBankProvider;
 
 class AfterPlaceOrder
 {
@@ -16,7 +19,8 @@ class AfterPlaceOrder
     public function __construct(
         private readonly \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         private readonly \Acquired\Payments\Gateway\Config\Basic $basicConfig
-    ) { }
+    ) {
+    }
 
     public function afterSavePaymentInformationAndPlaceOrder(
         $subject,
@@ -24,9 +28,8 @@ class AfterPlaceOrder
     ) {
         $order = $this->orderRepository->get($result);
 
-        switch ($order->getPayment()->getMethod())
-        {
-            case 'acquired_pay_by_bank':
+        switch ($order->getPayment()->getMethod()) {
+            case PayByBankProvider::CODE:
                 return $this->getPayByBankData($order);
             default:
                 break;

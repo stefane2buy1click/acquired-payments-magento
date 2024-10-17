@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -30,10 +31,10 @@ class Index implements ActionInterface
      * @param RedirectFactory $redirectFactory
      */
     public function __construct(
-    	Context $context,
-    	private readonly PageFactory $pageFactory,
-    	private readonly Session $session,
-    	private readonly RedirectFactory $redirectFactory
+        Context $context,
+        private readonly PageFactory $pageFactory,
+        private readonly Session $session,
+        private readonly RedirectFactory $redirectFactory
     ) {
     }
 

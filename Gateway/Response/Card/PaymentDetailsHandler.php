@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -25,7 +26,7 @@ class PaymentDetailsHandler implements HandlerInterface
      */
     public function __construct(
         private readonly LoggerInterface $logger
-    ){
+    ) {
     }
 
     /**
@@ -47,14 +48,12 @@ class PaymentDetailsHandler implements HandlerInterface
 
             $payment->setIsTransactionClosed(false);
             $payment->setShouldCloseParentTransaction(false);
-
         } catch (Exception $e) {
             $message = __('Payment Details Handler failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);
 
             throw new HandlerException($message);
         }
-
     }
 
     /**

@@ -4,7 +4,7 @@
  *
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  *
  *
@@ -19,4 +19,6 @@ use Magento\Framework\Exception\LocalizedException;
  *
  * Represents errors that occur during data validation in the Acquired Payments API integration.
  */
-class ValidationException extends LocalizedException {}
+class ValidationException extends LocalizedException
+{
+}

@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -47,6 +47,9 @@ class CreateAcquiredCustomer
      */
     public function execute($customerId = null): ?array
     {
+        // fixes issue where customerId is sometimes passed as null
+        $customerId = $customerId ?: $this->customerSession->getCustomer()->getId();
+
         if ($this->customerSession->isLoggedIn()) {
             try {
                 $acquiredCustomerId = $this->acquiredCustomerRepository->getByCustomerId(

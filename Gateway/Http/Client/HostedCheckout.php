@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -16,6 +17,7 @@ use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Acquired\Payments\Client\Gateway;
 use Acquired\Payments\Exception\Command\RequestException;
+use Magento\Sales\Api\OrderRepositoryInterface;
 
 class HostedCheckout implements ClientInterface
 {
@@ -26,7 +28,8 @@ class HostedCheckout implements ClientInterface
      */
     public function __construct(
         private readonly Gateway $gateway,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly OrderRepositoryInterface $orderRepository
     ) {
     }
 
@@ -44,10 +47,21 @@ class HostedCheckout implements ClientInterface
                 'body' => $body
             ]
         );
+        $quote = null;
 
-        $registry = \Magento\Framework\App\ObjectManager::getInstance()->get('Magento\Framework\Registry');
-        $order = $registry->registry('acq_transfer_order');
-        $quote = $order ? $order->getQuote() : null;
+        try {
+            $order = $this->orderRepository->get($body['transaction']['order_id']);
+            $quote = $order->getQuote();
+        } catch (Exception $e) {
+            if(isset($body['transaction'], $body['transaction']['order_id'])) {
+                $this->logger->critical(
+                    __('Order not found: %1', $body['transaction']['order_id']),
+                    [
+                        'exception' => $e
+                    ]
+                );
+            }
+        }
 
         if (!$quote || ($quote && !$quote->getIsMultiShipping())) {
             try {
@@ -58,7 +72,6 @@ class HostedCheckout implements ClientInterface
                         'response' => $response
                     ]
                 );
-
             } catch (Exception $e) {
                 $this->logger->critical(
                     __('Sale transaction request failed: %1', $e->getMessage()),

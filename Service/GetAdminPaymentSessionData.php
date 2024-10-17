@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -19,6 +20,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Acquired\Payments\Exception\Api\SessionException;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 
 class GetAdminPaymentSessionData implements PaymentSessionDataInterface
 {
@@ -30,6 +32,7 @@ class GetAdminPaymentSessionData implements PaymentSessionDataInterface
      * @param SerializerInterface $serializer
      * @param CartRepositoryInterface $cartRepository
      * @param LoggerInterface $logger
+     * @param PriceCurrencyInterface $priceCurrency
      */
     public function __construct(
         private readonly AcquiredCustomerRepositoryInterface $acquiredCustomerRepository,
@@ -37,7 +40,8 @@ class GetAdminPaymentSessionData implements PaymentSessionDataInterface
         private readonly CardConfig $cardConfig,
         private readonly SerializerInterface $serializer,
         private readonly CartRepositoryInterface $cartRepository,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly PriceCurrencyInterface $priceCurrency
     ) {
     }
 
@@ -53,7 +57,7 @@ class GetAdminPaymentSessionData implements PaymentSessionDataInterface
     {
         try {
             $quote = $this->backendQuoteSession->getQuote();
-            if(!$quote->getReservedOrderId()) {
+            if (!$quote->getReservedOrderId()) {
                 $quote->reserveOrderId();
                 $this->cartRepository->save($quote);
             }
@@ -68,7 +72,7 @@ class GetAdminPaymentSessionData implements PaymentSessionDataInterface
 
             $payload['transaction'] = [
                 'order_id' => $quote->getReservedOrderId(),
-                'amount' => number_format((float) $quote->getGrandTotal(), 2, '.', ''),
+                'amount' => $this->priceCurrency->roundPrice($quote->getGrandTotal()),
                 'currency' => strtolower($this->backendQuoteSession->getStore()->getCurrentCurrencyCode()),
                 'capture' => $this->cardConfig->getCaptureAction(),
                 'moto' => true

@@ -5,7 +5,7 @@ declare(strict_types=1);
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -13,12 +13,12 @@ namespace Acquired\Payments\Cron;
 
 use Acquired\Payments\Ui\Method\PayByBankProvider;
 use Magento\Framework\Api\FilterBuilder;
-use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SearchCriteriaBuilderFactory;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order;
 use Magento\Framework\Event\ManagerInterface;
 use Psr\Log\LoggerInterface;
+use Magento\Sales\Model\Order;
 
 class CancelPendingOrders
 {
@@ -29,7 +29,7 @@ class CancelPendingOrders
      */
     public function __construct(
         private readonly LoggerInterface $logger,
-        private readonly  SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly SearchCriteriaBuilderFactory $searchCriteriaBuilderFactory,
         private readonly FilterBuilder $filterBuilder,
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly OrderManagementInterface $orderManagement,
@@ -49,9 +49,9 @@ class CancelPendingOrders
         $offset = 24 * 3600;
         $orders = $this->getValidOrders($offset);
 
-        foreach($orders as $order) {
+        foreach ($orders as $order) {
             /** @var $order \Magento\Sales\Model\Order */
-            if( time() - strtotime($order->getCreatedAt()) >= $offset ) {
+            if (time() - strtotime($order->getCreatedAt()) >= $offset) {
                 $this->logger->debug('Cron job CancelPendingOrders cancelling order ' . $order->getIncrementId());
 
                 $order->registerCancellation('Order cancelled due to payment review timeout.');
@@ -64,7 +64,6 @@ class CancelPendingOrders
         }
 
         $this->logger->debug('Cron job CancelPendingOrders executed.');
-
     }
 
     protected function getValidOrders($timeOffset = 86400)
@@ -80,7 +79,9 @@ class CancelPendingOrders
             ->setValue('payment_review')
             ->create();
 
-        $searchCriteria = $this->searchCriteriaBuilder
+        $searchCriteriaBuilder = $this->searchCriteriaBuilderFactory->create();
+
+        $searchCriteria = $searchCriteriaBuilder
             ->addFilters([$methodFilter])
             ->addFilters([$statusFilter])
             ->setPageSize(50)->setCurrentPage(1)->create();
@@ -88,7 +89,7 @@ class CancelPendingOrders
         $ordersList = $this->orderRepository->getList($searchCriteria);
 
         $ordersList->getSelect()->where(
-            new \Zend_Db_Expr('TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`)) >= ' . $timeOffset )
+            new \Zend_Db_Expr('TIME_TO_SEC(TIMEDIFF(CURRENT_TIMESTAMP, `created_at`)) >= ' . $timeOffset)
         );
 
         return $ordersList;

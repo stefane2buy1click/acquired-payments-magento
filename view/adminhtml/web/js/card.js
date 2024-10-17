@@ -1,7 +1,7 @@
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 define([
@@ -52,7 +52,7 @@ define([
             return this;
         },
 
-        generateNonce: function() {
+        generateNonce: function () {
             const generateHash = function (input) {
                 let hash = 0;
                 for (let i = 0; i < input.length; i++) {
@@ -133,7 +133,7 @@ define([
             this.nonce = this.generateNonce();
 
             try {
-                if(this.error) {
+                if (this.error) {
                     throw new Error(this.message);
                 }
 
@@ -144,11 +144,11 @@ define([
                         self.scriptLoaded(true);
                     }
                     self._mountAcquiredComponent();
-                }).catch(function(error) {
+                }).catch(function (error) {
                     throw new Error($t('An error occurred while loading the Acquired payment method: ') + error.message);
                 });
             } catch (error) {
-               alert({
+                alert({
                     content: $t('An error occurred while initializing the Acquired payment method: ') + error.message
                 });
             }
@@ -170,7 +170,7 @@ define([
                         environment: self.mode
                     });
 
-                    self.acquiredComponent.create('payment', {style: self.style}).mount(self.placeholder);
+                    self.acquiredComponent.create('payment', { style: self.style }).mount(self.placeholder);
                 });
             }
 
@@ -191,7 +191,7 @@ define([
          * Trigger update to acquired
          */
         _getSession: async function () {
-            if(!this.nonce) {
+            if (!this.nonce) {
                 this.nonce = this.generateNonce();
             }
 
@@ -200,7 +200,7 @@ define([
                 body: 'form_key=' + window.FORM_KEY + '&nonce=' + this.nonce,
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type':'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 }
             });
             let result = await response.json();
@@ -216,7 +216,7 @@ define([
                 body: 'nonce=' + this.nonce + '&session_id=' + this.session_id + '&form_key=' + window.FORM_KEY,
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type':'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 }
             });
             let result = await response.json();
@@ -226,13 +226,13 @@ define([
         /**
          * Prepare for purchase
          */
-        _prepareForPurchase: async function() {
+        _prepareForPurchase: async function () {
             let response = await fetch(window.ACQ_CONFIRM_PURCHASE_SESSION_URL + "?isAjax=true", {
                 method: 'POST',
                 body: 'nonce=' + this.nonce + '&form_key=' + window.FORM_KEY,
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type':'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 }
             });
             let result = await response.json();
@@ -258,7 +258,7 @@ define([
                 await this._updateSession();
                 await this._prepareForPurchase();
 
-                let response = await acquired.confirmPayment({components: this.acquiredComponent});
+                let response = await acquired.confirmPayment({ components: this.acquiredComponent });
 
                 if (response.isError()) {
                     throw new Error($t('Payment failed! Reason: ') + response.data.status);

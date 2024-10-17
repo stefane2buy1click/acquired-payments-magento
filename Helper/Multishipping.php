@@ -1,9 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -11,40 +13,57 @@ namespace Acquired\Payments\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Backend\Model\Session\Quote;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Framework\App\State;
+use Magento\Framework\App\Helper\Context;
 
 class Multishipping extends AbstractHelper
 {
 
+    /**
+     * @var Quote
+     */
     private $backendSessionQuote;
 
+    /**
+     * @var CheckoutSession
+     */
     private $checkoutSession;
 
+    /**
+     * @var CartRepositoryInterface
+     */
     private $quoteRepository;
 
-    private $quoteFactory;
-
+    /**
+     * @var State
+     */
     private $state;
 
+    /**
+     * @var StoreManagerInterface
+     */
     private $storeManager;
 
+    /**
+     * @var int
+     */
     private $quoteId;
 
     public function __construct(
-        \Magento\Backend\Model\Session\Quote $backendSessionQuote,
-        \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Magento\Quote\Model\QuoteFactory $quoteFactory,
+        Quote $backendSessionQuote,
+        CheckoutSession $checkoutSession,
+        CartRepositoryInterface $quoteRepository,
         StoreManagerInterface $storeManager,
-        \Magento\Framework\App\State $state,
-        \Magento\Framework\App\Helper\Context $context
-    )
-    {
+        State $state,
+        Context $context
+    ) {
         parent::__construct($context);
-
         $this->backendSessionQuote = $backendSessionQuote;
         $this->checkoutSession = $checkoutSession;
         $this->quoteRepository = $quoteRepository;
-        $this->quoteFactory = $quoteFactory;
         $this->state = $state;
         $this->storeManager = $storeManager;
     }
@@ -56,12 +75,9 @@ class Multishipping extends AbstractHelper
 
     public function getAreaCode()
     {
-        try
-        {
+        try {
             return $this->state->getAreaCode();
-        }
-        catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             return null;
         }
     }
@@ -83,19 +99,15 @@ class Multishipping extends AbstractHelper
         $quote = $this->getSessionQuote();
 
         // API Request
-        if (empty($quote) || !is_numeric($quote->getGrandTotal()))
-        {
-            try
-            {
+        if (empty($quote) || !is_numeric($quote->getGrandTotal())) {
+            try {
                 if ($quoteId)
                     $quote = $this->quoteRepository->get($quoteId);
                 else if ($this->quoteId) {
                     $quote = $this->quoteRepository->get($this->quoteId);
                 }
-            }
-            catch (\Exception $e)
-            {
-
+            } catch (\Exception $e) {
+                throw $e;
             }
         }
 
@@ -111,5 +123,4 @@ class Multishipping extends AbstractHelper
     {
         return $this->checkoutSession->getQuote();
     }
-
 }

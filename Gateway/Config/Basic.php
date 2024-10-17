@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
 /**
  *
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  *
  *
@@ -151,7 +152,8 @@ class Basic
      * @param string $key The configuration key to check the flag for.
      * @return bool True if the flag is set, otherwise false.
      */
-    private function isSetFlag(string $key): bool {
+    private function isSetFlag(string $key): bool
+    {
         return $this->scopeConfig->isSetFlag(
             self::CONFIG_PATH . $key,
             ScopeInterface::SCOPE_WEBSITE

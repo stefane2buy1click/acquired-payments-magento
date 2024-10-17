@@ -4,7 +4,7 @@
  *
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  *
  *
@@ -15,6 +15,7 @@ namespace Acquired\Payments\Model\Webhook\Processor;
 use Acquired\Payments\Gateway\Config\Basic;
 use Magento\Framework\Serialize\SerializerInterface;
 use Acquired\Payments\Model\Webhook\Context as WebhookContext;
+use Acquired\Payments\Service\MultishippingService;
 
 /**
  * @class StatusUpdateProcessor
@@ -34,7 +35,8 @@ class CompositeStatusUpdateProcessor extends AbstractProcessor
         protected readonly WebhookContext $webhookContext,
         protected readonly OrderStatusUpdateProcessor $orderStatusUpdateProcessor,
         protected readonly MultishippingStatusUpdateProcessor $multishippingStatusUpdateProcessor
-    ) {}
+    ) {
+    }
 
     /**
      * Processes webhook data by validating its version and integrity, then acts based on its type and status.
@@ -48,15 +50,15 @@ class CompositeStatusUpdateProcessor extends AbstractProcessor
     {
         $webhookBody = $webhookData['webhook_body'];
 
-        if($this->isMultishippingOrder($webhookBody)) {
+        if ($this->isMultishippingOrder($webhookBody)) {
             return $this->multishippingStatusUpdateProcessor->process($webhookData, $webhookHash, $webhookVersion);
         } else {
             return $this->orderStatusUpdateProcessor->process($webhookData, $webhookHash, $webhookVersion);
         }
     }
 
-    protected function isMultishippingOrder($webhookBody) {
-        return strpos( $webhookBody['order_id'], 'ACQM') !== false;
+    protected function isMultishippingOrder($webhookBody)
+    {
+        return strpos($webhookBody['order_id'], MultishippingService::MULTISHIPPING_ORDER_ID_SUFFIX) !== false;
     }
-
 }

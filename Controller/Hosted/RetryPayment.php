@@ -16,8 +16,7 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
-use Acquired\Payments\Api\Data\MultishippingInterface;
-use Acquired\Payments\Ui\Method\PayByBankProvider;
+use Acquired\Payments\Controller\Hosted\Context as HostedContext;
 
 /**
  * @class RetryPayment
@@ -28,7 +27,7 @@ class RetryPayment extends AbstractAction implements CsrfAwareActionInterface, H
 {
 
     /**
-     * Executes the action to process hosted checkout response
+     * Executes the action to process hosted checkout retry of payment
      */
     public function execute()
     {
@@ -56,74 +55,45 @@ class RetryPayment extends AbstractAction implements CsrfAwareActionInterface, H
         }
     }
 
-    protected function getRedirectResponse($order) {
+    protected function getRedirectResponse($order)
+    {
 
         $amount = $order->getPayment()->getAmountOrdered();
         $isMultishipping = $this->checkMultishipping($order);
 
         $customData = [];
 
-        if($order->getCustomerId()) {
+        if ($order->getCustomerId()) {
             $customData['customer_id'] = $order->getCustomerId();
         }
 
         $requestData = $isMultishipping ? $this->processMultishipping($order) : $this->hostedContext->hostedCheckoutBuilder->getData($order->getIncrementId(), $amount, $customData);
-        $requestData['transaction']['order_id'] = $requestData['transaction']['order_id'] . "-ACQR-" . time();
+        $requestData['transaction']['order_id'] = $requestData['transaction']['order_id'] . HostedContext::HOSTED_ORDER_ID_RETRY_IDENTIFIER . time();
 
         $response = $this->hostedContext->gateway->getPaymentLinks()->generateLinkId($requestData);
 
         return $response;
     }
 
-    protected function checkMultishipping($order) {
+    protected function checkMultishipping($order)
+    {
         $multishippingItem = $this->hostedContext->multishippingService->getMultishippingByReservedOrderId($order->getIncrementId());
         return $multishippingItem !== null && $multishippingItem->getId();
     }
 
-    protected function processMultishipping($order) {
-        $customerId = null;
-        $multishippingOrderId = null;
-        $orders = [];
-        $orderIds = [];
-        $amount = 0;
-
+    protected function processMultishipping($order)
+    {
         $multishippingItem = $this->hostedContext->multishippingService->getMultishippingByReservedOrderId($order->getIncrementId());
         $multishippingItems = $this->hostedContext->multishippingService->getMultishippingByTransactionId($multishippingItem->getAcquiredTransactionId());
 
         $incrementIds = [];
-        foreach($multishippingItems as $mi) {
+        foreach ($multishippingItems as $mi) {
             $incrementIds[] = $mi->getQuoteReservedId();
         }
 
-        $orderCollection = $this->hostedContext->orderCollectionFactory->create();
-        $orderCollection->addFieldToSelect("*");
-        $orderCollection->addFieldToFilter('increment_id', ['in' => $incrementIds]);
+        $multishippingResult = $this->hostedContext->multishippingService->processMultishippingOrdersByIncrementIds($incrementIds);
 
-        foreach($orderCollection->getItems() as $order) {
-            if($order->getPayment()->getMethod() == PayByBankProvider::CODE && $order->getState() == 'payment_review') {
-
-                // check if multishipping is processed already
-                $multishippingItem = $this->hostedContext->multishippingService->getMultishippingByReservedOrderId($order->getIncrementId());
-
-                if($multishippingItem->getStatus() == MultishippingInterface::STATUS_SUCCESS) {
-                    continue;
-                }
-
-                $multishippingItem->setOrderId($order->getId());
-                $multishippingItem->save();
-
-                if(!$multishippingOrderId) {
-                    $multishippingOrderId = $order->getIncrementId() . "-ACQM";
-                }
-                if(!$customerId && $order->getCustomerId()) {
-                    $customerId = $order->getCustomerId();
-                }
-                $orders[] = $order;
-                $amount += $order->getGrandTotal();
-            }
-        }
-
-        foreach($orders as $order) {
+        foreach ($multishippingResult->getOrders() as $order) {
             $orderIds[] = $order->getIncrementId();
         }
         $customData = [
@@ -131,11 +101,11 @@ class RetryPayment extends AbstractAction implements CsrfAwareActionInterface, H
             'custom2' => implode(",", $orderIds)
         ];
 
-        if($order->getCustomerId()) {
-            $customData['customer_id'] = $order->getCustomerId();
+        if ($multishippingResult->getCustomerId()) {
+            $customData['customer_id'] = $multishippingResult->getCustomerId();
         }
 
-        $requestData = $this->hostedContext->hostedCheckoutBuilder->getData($multishippingOrderId, $amount, $customData);
+        $requestData = $this->hostedContext->hostedCheckoutBuilder->getData($multishippingResult->getMultishippingOrderId(), $multishippingResult->getAmount(), $customData);
 
         return $requestData;
     }

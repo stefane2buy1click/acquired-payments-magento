@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -12,7 +13,6 @@ namespace Acquired\Payments\ViewModel;
 
 use Acquired\Payments\Api\AcquiredCustomerRepositoryInterface;
 use Magento\Customer\Model\Session as CustomerSession;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Acquired\Payments\Client\Gateway;
 

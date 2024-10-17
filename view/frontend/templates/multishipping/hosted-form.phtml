@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
@@ -10,19 +11,17 @@
     require([
         'uiLayout',
         'jquery'
-    ], function (layout, $) {
-        $(function () {
+    ], function(layout, $) {
+        $(function() {
             var paymentMethodData = {
-                method: 'acquired_pay_by_bank'
+                method: "<?= \Acquired\Payments\Ui\Method\PayByBankProvider::CODE; ?>"
             };
-            layout([
-                {
-                    component: 'Acquired_Payments/js/view/payment/method-renderer/multishipping/pay-by-bank',
-                    name: 'payment_method_acquired_pay_by_bank',
-                    method: paymentMethodData.method,
-                    item: paymentMethodData
-                }
-            ]);
+            layout([{
+                component: 'Acquired_Payments/js/view/payment/method-renderer/multishipping/pay-by-bank',
+                name: 'payment_method_acquired_pay_by_bank',
+                method: paymentMethodData.method,
+                item: paymentMethodData
+            }]);
 
             $('body').trigger('contentUpdated');
         })

@@ -1,20 +1,21 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Observer\Multishipping;
 
 use Acquired\Payments\Api\Data\MultishippingInterface;
+use Acquired\Payments\Api\Data\MultishippingResultInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Acquired\Payments\Service\MultishippingService;
 use Acquired\Payments\Api\MultishippingRepositoryInterface;
-use Acquired\Payments\Ui\Method\PayByBankProvider;
 use Acquired\Payments\Ui\Method\CardProvider;
 use Acquired\Payments\Controller\Hosted\Context;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -67,43 +68,13 @@ class CheckoutControllerSuccessAction implements \Magento\Framework\Event\Observ
 
         $orderIds = $observer->getEvent()->getOrderIds();
 
-        $customerId = null;
-        $multishippingOrderId = null;
-        $orders = [];
-        $amount = 0;
-
-        $orderRepository = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Sales\Api\OrderRepositoryInterface::class);
-
         // fetch orders by ids using order repository
         // check if there are any orders to process
         foreach ($orderIds as $orderId) {
-            $order = $orderRepository->get($orderId);
-            if($order->getPayment()->getMethod() == PayByBankProvider::CODE && $order->getState() == 'payment_review') {
-
-                // check if multishipping is processed already
-                $multishippingItem = $this->multishippingService->getMultishippingByReservedOrderId($order->getIncrementId());
-
-                if($multishippingItem->getStatus() == MultishippingInterface::STATUS_SUCCESS) {
-                    continue;
-                }
-
-                $multishippingItem->setOrderId($order->getId());
-                $multishippingItem->save();
-
-                if(!$multishippingOrderId) {
-                    $multishippingOrderId = $order->getIncrementId() . "-ACQM";
-                }
-                if(!$customerId && $order->getCustomerId()) {
-                    $customerId = $order->getCustomerId();
-                }
-                $orders[] = $order;
-                $amount += $order->getGrandTotal();
-            }
-
-            if($order->getPayment()->getMethod() == CardProvider::CODE) {
-                foreach ($order->getInvoiceCollection() as $invoice)
-                {
-                    if(!$invoice->getEmailSent()) {
+            $order = $this->orderRepository->get($orderId);
+            if ($order->getPayment()->getMethod() == CardProvider::CODE) {
+                foreach ($order->getInvoiceCollection() as $invoice) {
+                    if (!$invoice->getEmailSent()) {
                         $this->invoiceSender->send($invoice);
                         $invoice->setEmailSent(1);
                         $invoice->save();
@@ -112,16 +83,17 @@ class CheckoutControllerSuccessAction implements \Magento\Framework\Event\Observ
             }
         }
 
-        if($amount && count($orders)) {
-            $this->processHostedRedirect($multishippingOrderId, $amount, $orders, $customerId);
+        $multishippingResult = $this->multishippingService->processMultishippingOrdersByIds($orderIds);
+
+        if ($multishippingResult->getAmount() && count($multishippingResult->getOrders())) {
+            $this->processHostedRedirect($multishippingResult);
         }
-
-
     }
 
-    protected function processHostedRedirect($orderId, $amount, $orders, $customerId) {
+    protected function processHostedRedirect(MultishippingResultInterface $multishippingResult)
+    {
         $orderIds = [];
-        foreach($orders as $order) {
+        foreach ($multishippingResult->getOrders() as $order) {
             $orderIds[] = $order->getIncrementId();
         }
         $customData = [
@@ -129,22 +101,20 @@ class CheckoutControllerSuccessAction implements \Magento\Framework\Event\Observ
             'custom2' => implode(",", $orderIds)
         ];
 
-        if($customerId) {
-            $customData['customer_id'] = $customerId;
+        if ($multishippingResult->getCustomerId()) {
+            $customData['customer_id'] = $multishippingResult->getCustomerId();
         }
 
-
-
-        $requestData = $this->hostedContext->hostedCheckoutBuilder->getData($orderId, $amount, $customData);
+        $requestData = $this->hostedContext->hostedCheckoutBuilder->getData($multishippingResult->getMultishippingOrderId(), $multishippingResult->getAmount(), $customData);
         $response = $this->gateway->getPaymentLinks()->generateLinkId($requestData);
 
         if ($response && $response['link_id']) {
-            foreach($orders as $order) {
+            foreach ($multishippingResult->getOrders() as $order) {
                 $order->getPayment()->setLastTransId($response['link_id']);
                 $order->getPayment()->save();
 
                 $multishippingItem = $this->multishippingService->getMultishippingByReservedOrderId($order->getIncrementId());
-                if($multishippingItem) {
+                if ($multishippingItem) {
                     $multishippingItem->setAcquiredTransactionId($response['link_id']);
                     $multishippingItem->setAcquiredSessionId($response['link_id']);
                     $multishippingItem->save();

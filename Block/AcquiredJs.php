@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -31,5 +32,4 @@ class AcquiredJs extends Template
     {
         return $this->_scopeConfig->getValue(self::XML_CONFIG_PATH_JS_INTEGRITY_HASH);
     }
-
 }

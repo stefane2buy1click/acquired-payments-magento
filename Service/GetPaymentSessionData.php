@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 /**
  * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
  * See LICENSE.txt for license details.
  */
 
@@ -21,6 +22,8 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Acquired\Payments\Gateway\Config\Card\Config as CardConfig;
 use Magento\Framework\UrlInterface;
 use Acquired\Payments\Exception\Api\SessionException;
+use Acquired\Payments\Service\MultishippingService;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 
 class GetPaymentSessionData implements PaymentSessionDataInterface
 {
@@ -35,6 +38,8 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
      * @param UrlInterface $urlBuilder
      * @param CartRepositoryInterface $cartRepository
      * @param LoggerInterface $logger
+     * @param MultishippingService $multishippingService
+     * @param PriceCurrencyInterface $priceCurrency
      */
     public function __construct(
         private readonly CustomerSession $customerSession,
@@ -46,7 +51,8 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
         private readonly UrlInterface $urlBuilder,
         private readonly CartRepositoryInterface $cartRepository,
         private readonly LoggerInterface $logger,
-        private readonly MultishippingService $multishippingService
+        private readonly MultishippingService $multishippingService,
+        private readonly PriceCurrencyInterface $priceCurrency
     ) {
     }
 
@@ -66,7 +72,7 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
             $payload = [
                 'transaction' => [
                     'order_id' => $orderId,
-                    'amount' => number_format((float) $quote->getGrandTotal(), 2, '.', ''),
+                    'amount' => $this->priceCurrency->roundPrice($quote->getGrandTotal()),
                     'currency' => strtolower($this->storeManager->getStore()->getCurrentCurrencyCode()),
                     'capture' => $this->cardConfig->getCaptureAction()
                 ]
@@ -75,10 +81,15 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
             // if multishipping checkout, set capture to false, as we want to authorize only
             if ($quote->getIsMultiShipping()) {
                 $orderIds = $this->multishippingService->reserveOrderIds($quote);
+
+                if (empty($orderIds)) {
+                    throw new Exception('No order ids found for multishipping');
+                }
+
                 $payload['transaction']['capture'] = false;
                 $payload['transaction']['custom1'] = 'multishipping order';
                 $payload['transaction']['custom2'] = implode(",", $orderIds);
-                $payload['transaction']['order_id'] = $orderIds[0] . '-ACQM';
+                $payload['transaction']['order_id'] = $orderIds[0] . MultishippingService::MULTISHIPPING_ORDER_ID_SUFFIX;
             }
 
             if ($customData) {
@@ -89,15 +100,15 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
             $redirectUrl = $this->urlBuilder->getUrl('acquired/threedsecure/response');
             $webhookUrl = $this->urlBuilder->getUrl('acquired/webhook');
 
-            // if not https make it for all urls
+            // if not https throw exception
             if (strpos($contactUrl, 'https://') === false) {
-                $contactUrl = str_replace('http://', 'https://', $contactUrl);
+                throw new Exception('Contact URL must be https');
             }
             if (strpos($redirectUrl, 'https://') === false) {
-                $redirectUrl = str_replace('http://', 'https://', $redirectUrl);
+                throw new Exception('Redirect URL must be https');
             }
             if (strpos($webhookUrl, 'https://') === false) {
-                $webhookUrl = str_replace('http://', 'https://', $webhookUrl);
+                throw new Exception('Webhook URL must be https');
             }
 
             $payload['tds'] = [
@@ -109,7 +120,7 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
             ];
 
             if ($this->customerSession->isLoggedIn()) {
-                $acquiredCustomer = $this->createAcquiredCustomer->execute();
+                $acquiredCustomer = $this->createAcquiredCustomer->execute($this->customerSession->getCustomerId());
                 $payload['customer'] = [
                     'customer_id' => $acquiredCustomer['customer_id']
                 ];
@@ -119,7 +130,6 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
                     $payload['payment']['reference'] = $this->customerSession->getCustomerId();
                 }
             }
-
         } catch (Exception $e) {
             $message = __('Get Payment Session data failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);

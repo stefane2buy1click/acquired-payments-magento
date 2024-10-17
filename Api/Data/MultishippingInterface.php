@@ -14,6 +14,7 @@ interface MultishippingInterface
 {
 
     const ID = 'id';
+    const ORDER_ID = 'order_id';
     const MULTISHIPPING_ID = 'id';
     const QUOTE_RESERVED_ID = 'quote_reserved_id';
     const QUOTE_ADDRESS_ID = 'quote_address_id';
@@ -38,6 +39,19 @@ interface MultishippingInterface
      * @return \Acquired\Payments\Multishipping\Api\Data\MultishippingInterface
      */
     public function setId(int $id);
+
+    /**
+     * Get id
+     * @return string|null
+     */
+    public function getOrderId();
+
+    /**
+     * Set id
+     * @param int $id
+     * @return \Acquired\Payments\Multishipping\Api\Data\MultishippingInterface
+     */
+    public function setOrderId(int $id);
 
     /**
      * Get multishipping_id
