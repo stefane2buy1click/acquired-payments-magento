@@ -42,6 +42,8 @@ define(
                 acquiredComponent: null,
                 template: 'Acquired_Payments/payment/card',
                 active: false,
+                checkoutType: '',
+                confirmParams: null,
                 code: 'acquired_card',
                 placeholder: '#acquired-payments-card-component',
                 /**
@@ -148,6 +150,13 @@ define(
                 let _this = this;
                 let placeholder = $(this.placeholder);
 
+                // prevent multiple calls during initialization
+                if(_this.initializing) {
+                    return;
+                }
+
+                _this.initializing = true;
+
                 if (reset) {
                     this.nonce = this.generateNonce();
                     this.acquiredComponent = null;
@@ -155,6 +164,7 @@ define(
                 }
 
                 if (placeholder.find('iframe').length) {
+                    _this.initializing = false;
                     return;
                 }
 
@@ -169,6 +179,8 @@ define(
                         message: $t('There was an issue initializing the Acquired payment method.')
                     });
                 }
+
+                _this.initializing = false;
             },
 
             /**
@@ -180,6 +192,33 @@ define(
             _initAcquiredComponent: function (options) {
                 this.acquiredComponent = acquired.components(options);
                 this.acquiredComponent.create('payment', { style: this.getStyle() }).mount(this.placeholder);
+
+                const self = this;
+
+                window.addEventListener('message', async function(message) {
+                    if(message && message.data && message.data.event && message.data.event == "change-form") {
+                        const response = message.data.response;
+
+                        // we switched to apple / google pay, switch to new flow
+                        self.checkoutType = response.toComponent;
+
+                        if(self.checkoutType == "payment" && !self.confirmParams) {
+                            self.getConfirmParams();
+                        }
+                    }
+
+                    if(message && message.data && message.data.event && message.data.event == "submit-response") {
+                        const response = message.data.response;
+
+                        if(response.status == 'error') {
+                            messageList.addErrorMessage({
+                                message: $t("An error occurred during the payment process. Please try again.")
+                            });
+
+                            await self.initAcquired(true);
+                        }
+                    }
+                }, false);
             },
 
             /**
@@ -256,16 +295,22 @@ define(
              * @returns {Promise<void>}
              */
             getConfirmParams: async function () {
+                const self = this;
+                self.confirmParams = {};
                 let getConfirmParamsUrl = urlBuilder.createUrl('/acquired/confirm-params/' + this.nonce, {});
                 try {
                     let confirmParams = await storage.post(getConfirmParamsUrl);
-                    if (_.indexOf(confirmParams, 0) !== -1) {
+                    if (typeof confirmParams !== "undefined" && typeof confirmParams[0] !== "undefined") {
+                        self.confirmParams = confirmParams[0];
                         return confirmParams[0];
                     } else {
+                        self.confirmParams = {};
                         return {};
                     }
                 } catch (error) {
+                    self.confirmParams = null;
                     this.nonce = this.generateNonce();
+                    await this.getSession(true);
                     throw new Error($t('There was an issue confirming the payment.'));
                 }
             },
@@ -295,15 +340,18 @@ define(
                 fullScreenLoader.startLoader();
                 this.isPlaceOrderActionAllowed(false);
 
-                try {
-                    await this.updateSession();
-                } catch (error) {
-                    messageList.addErrorMessage({
-                        message: error.message || $t('Payment session expired, please re-enter the payment data.')
-                    });
-                    await this.initAcquired(true);
-                    this.resetPlaceOrder();
-                    return false;
+                // if we are in card form mode, we need to update the session before we can submit the form
+                if(self.checkoutType == "cardForm") {
+                    try {
+                        await this.updateSession();
+                    } catch (error) {
+                        messageList.addErrorMessage({
+                            message: error.message || $t('Payment session expired, please re-enter the payment data.')
+                        });
+                        await this.initAcquired(true);
+                        this.resetPlaceOrder();
+                        return false;
+                    }
                 }
 
                 try {
@@ -359,7 +407,8 @@ define(
              */
             formSubmitListener: async function () {
                 try {
-                    const confirmParams = await this.getConfirmParams();
+                    // if we are in apple pay / google pay mode we cannot get the confirm params from the server and need to use the ones we have
+                    const confirmParams = this.checkoutType == "cardForm" ? await this.getConfirmParams() : this.confirmParams;
 
                     let response = await acquired.confirmPayment(
                         {
@@ -441,6 +490,7 @@ define(
                 let iframe = document.createElement('iframe');
                 iframe.src = redirectUrl;
                 iframe.id = 'TdsIframe';
+                iframe.sandbox = 'allow-scripts allow-same-origin allow-forms';
 
                 document.body.appendChild(iframe);
                 iframe.style.height = this.getTdsWindowSize() + "px";

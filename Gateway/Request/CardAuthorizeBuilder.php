@@ -42,7 +42,7 @@ class CardAuthorizeBuilder implements BuilderInterface
     {
         try {
             $payment = SubjectReader::readPayment($buildSubject)->getPayment();
-            $order = $payment->getOrder();
+            $order = $payment instanceof \Magento\Sales\Model\Order\Payment ? $payment->getOrder() : SubjectReader::readPayment($buildSubject)->getOrder();
 
             if (empty($payment->getAdditionalInformation('transaction_id')) && !$order->getMultishippingAcquiredTransactionId()) {
                 throw new BuilderException(__('Missing transaction_id'));

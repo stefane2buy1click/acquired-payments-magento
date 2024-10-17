@@ -57,6 +57,14 @@ class Refund implements ClientInterface
                 ];
             }
 
+            // check if transaction exists
+
+            $transaction = $this->gateway->getTransaction()->get($body['transaction_id']);
+
+            if (!isset($transaction['transaction_id'])) {
+                throw new RequestException(__('Transaction not found.'));
+            }
+
             $response = $this->gateway->getTransaction()->refund(
                 $body['transaction_id'],
                 $body['reference']

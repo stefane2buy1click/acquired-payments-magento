@@ -36,13 +36,15 @@ class CardVoidBuilder extends CardAuthorizeBuilder
     {
         try {
             $payment = SubjectReader::readPayment($buildSubject)->getPayment();
+            $order = $payment instanceof \Magento\Sales\Model\Order\Payment ? $payment->getOrder() : SubjectReader::readPayment($buildSubject)->getOrder();
+
             if (empty($payment->getAdditionalInformation('transaction_id'))) {
                 throw new BuilderException(__('Missing transaction_id'));
             }
 
             return [
                 'transaction_id' => $payment->getAdditionalInformation('transaction_id'),
-                'reference' => ['reference' => $payment->getOrder()?->getIncrementId()]
+                'reference' => ['reference' => $order?->getIncrementId()]
             ];
         } catch (Exception $e) {
             $message = __('Void build failed: %1', $e->getMessage());

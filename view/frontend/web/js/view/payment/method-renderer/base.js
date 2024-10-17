@@ -372,6 +372,7 @@ define([
             let iframe = document.createElement('iframe');
             iframe.src = redirectUrl;
             iframe.id = 'TdsIframe';
+            iframe.sandbox = 'allow-scripts allow-same-origin allow-forms';
 
             document.body.appendChild(iframe);
             iframe.style.height = this.getTdsWindowSize() + "px";

@@ -40,14 +40,15 @@ class CardRefundBuilder implements BuilderInterface
     {
         try {
             $payment = SubjectReader::readPayment($buildSubject)->getPayment();
-            $order = $payment->getOrder();
+            $order = $payment instanceof \Magento\Sales\Model\Order\Payment ? $payment->getOrder() : SubjectReader::readPayment($buildSubject)->getOrder();
+            $paymentTransactionId = $payment instanceof \Magento\Sales\Model\Order\Payment ? $payment->getLastTransId() : $payment->getAdditionalInformation('transaction_id');
             $amount = (float)SubjectReader::readAmount($buildSubject);
 
             if ($amount <= 0) {
                 throw new BuilderException(__('Refunds cannot be processed if the amount is 0. Please specify a different amount.'));
             }
 
-            $transactionId = $payment->getAdditionalInformation('transaction_id') ?: $payment->getLastTransId();
+            $transactionId = $payment->getAdditionalInformation('transaction_id') ?: $paymentTransactionId;
 
             if (empty($transactionId)) {
                 throw new BuilderException(__('Missing transaction_id'));
@@ -57,8 +58,8 @@ class CardRefundBuilder implements BuilderInterface
                 'transaction_id' => $transactionId,
                 'grand_total' => $order->getGrandTotal(),
                 'reference' => [
-                    'reference' => $payment->getOrder()?->getIncrementId(),
-                    'amount' => $this->priceCurrency->roundPrice($amount)
+                    'reference' => $order?->getIncrementId(),
+                    'amount' => $this->priceCurrency->round($amount)
                 ]
             ];
         } catch (Exception $e) {

@@ -136,13 +136,17 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
 
             if ($this->customerSession->isLoggedIn()) {
                 $acquiredCustomer = $this->createAcquiredCustomer->execute($this->customerSession->getCustomerId());
-                $payload['customer']['customer_id'] = $acquiredCustomer['customer_id'];
+                if($acquiredCustomer) {
+                    $payload['customer']['customer_id'] = $acquiredCustomer['customer_id'];
+                }
 
                 if ($this->cardConfig->isCreateCardEnabled()) {
                     $payload['payment']['create_card'] = true;
+                    $payload['save_card'] = true;
                     $payload['payment']['reference'] = $this->customerSession->getCustomerId();
                 } else {
                     $payload['payment']['create_card'] = false;
+                    $payload['save_card'] = false;
                 }
             }
         } catch (Exception $e) {

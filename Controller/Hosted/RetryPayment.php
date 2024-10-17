@@ -58,7 +58,7 @@ class RetryPayment extends AbstractAction implements CsrfAwareActionInterface, H
     protected function getRedirectResponse($order)
     {
 
-        $amount = $order->getPayment()->getAmountOrdered();
+        $amount = floatval($order->getPayment()->getAmountOrdered());
         $isMultishipping = $this->checkMultishipping($order);
 
         $customData = [];

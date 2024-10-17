@@ -25,6 +25,8 @@ use Acquired\Payments\Model\Api\CreateAcquiredCustomer;
 use Acquired\Payments\Service\GetTransactionAddressData;
 use Acquired\Payments\Api\Data\TransactionAddressDataInterface;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Store\Model\Store;
+use Magento\Quote\Model\Quote;
 use Magento\Quote\Api\CartRepositoryInterface;
 
 class HostedCheckoutBuilder implements BuilderInterface
@@ -61,11 +63,13 @@ class HostedCheckoutBuilder implements BuilderInterface
     {
         try {
             $payment = SubjectReader::readPayment($buildSubject)->getPayment();
-            $order = $payment->getOrder();
+            $order = $payment instanceof \Magento\Sales\Model\Order\Payment ? $payment->getOrder() : SubjectReader::readPayment($buildSubject)->getOrder();
             $quote = $this->quoteRepository->get($order->getQuoteId());
             $amount = (float)SubjectReader::readAmount($buildSubject);
 
-            if ($quote->getIsMultiShipping()) {
+            $isMultiShipping = $quote instanceof Quote ? $quote->getIsMultiShipping() : false;
+
+            if ($isMultiShipping) {
                 $order->setMultishippingAcquiredTransactionId('M-' . $order->getQuoteId());
             }
 
@@ -97,17 +101,20 @@ class HostedCheckoutBuilder implements BuilderInterface
      * @param string $orderId
      * @param float $amount
      * @param array $customData
-     * @return void
+     * @return array
      */
-    public function getData(int $quoteId, $orderId, $amount, array $customData = [])
+    public function getData(int $quoteId, $orderId, $amount, array $customData = []) : array
     {
         $quote = $this->quoteRepository->get($quoteId);
+
+        $store = $this->storeManager->getStore();
+        $currencyCode = $store instanceof Store ? $store->getCurrentCurrencyCode() : $quote->getCurrency()->getStoreCurrencyCode();
 
         $payload = [
             'transaction' => [
                 'order_id' => $orderId,
                 'amount' => $amount,
-                'currency' => strtolower($this->storeManager->getStore()->getCurrentCurrencyCode()),
+                'currency' => strtolower($currencyCode),
                 'capture' => true,
             ],
             'redirect_url' => $this->urlBuilder->getUrl($this->hostedConfig->getRedirectUrl()),

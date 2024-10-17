@@ -85,11 +85,13 @@ class GetAdminPaymentSessionData implements PaymentSessionDataInterface
                 $payload['transaction']['custom_data'] = base64_encode($this->serializer->serialize($customData));
             }
 
-            $payload['custmoer'] = [];
+            $payload['customer'] = [];
 
             if ($acquiredCustomerId) {
                 $payload['customer']['customer_id'] = $acquiredCustomerId;
             }
+
+            $payload['payment_methods'] = ['card']; // only card payments are available for admin orders
 
             /**
              * @var TransactionAddressDataInterface $addressData

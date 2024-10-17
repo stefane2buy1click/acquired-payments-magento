@@ -195,7 +195,7 @@ class AcquiredSession implements SessionInterface
         }
 
         // otherwise we throw an error as nonce changed or the payload fingerprint is invalid
-        throw new SessionException(__('Session ID does not match the current session!'));
+        throw new SessionException(__('Session ID does not match the current session'));
     }
 
     /**

@@ -80,10 +80,31 @@
                     <field id="company_id" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="105">
                         <label>Company Id</label>
                         <comment><![CDATA[Possibly required when used as payment on multi website check <a href="https://docs.acquired.com/docs/steps-to-go-live#company-id-and-mid-values" target="_blank">documentation</a> for details]]></comment>
+                        <depends>
+                            <field id="mode">1</field>
+                        </depends>
                     </field>
                     <field id="mid" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="110">
                         <label>MID</label>
                         <comment><![CDATA[Possibly required when used as payment on multi website check <a href="https://docs.acquired.com/docs/steps-to-go-live#company-id-and-mid-values" target="_blank">documentation</a> for details]]></comment>
+                        <depends>
+                            <field id="mode">1</field>
+                        </depends>
+                    </field>
+
+                    <field id="test_company_id" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="105">
+                        <label>Company ID (Test Mode)</label>
+                        <comment><![CDATA[Possibly required when used as payment on multi website check <a href="https://docs.acquired.com/docs/steps-to-go-live#company-id-and-mid-values" target="_blank">documentation</a> for details]]></comment>
+                        <depends>
+                            <field id="mode">0</field>
+                        </depends>
+                    </field>
+                    <field id="test_mid" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="110">
+                        <label>Mid (Test Mode)</label>
+                        <comment><![CDATA[Possibly required when used as payment on multi website check <a href="https://docs.acquired.com/docs/steps-to-go-live#company-id-and-mid-values" target="_blank">documentation</a> for details]]></comment>
+                        <depends>
+                            <field id="mode">0</field>
+                        </depends>
                     </field>
 
                     <field id="csp_override" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="120">
@@ -99,6 +120,12 @@
                     <field id="debug_log" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="140">
                         <label>Enable Debug Logging</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+
+                    <field id="customer_phone" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="150">
+                        <label>Send Customer Phone to Acquired/Banks</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <comment><![CDATA[NOTE: If configured phone format/validation needs to be done within the theme / checkout module]]></comment>
                     </field>
                 </group>
                 <group id="acquired_card" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
