@@ -11,15 +11,12 @@ declare(strict_types=1);
 
 namespace Acquired\Payments\Test\Unit\Gateway\Request;
 
-use PHPUnit\Framework\TestCase;
 use Acquired\Payments\Gateway\Request\CardVoidBuilder;
 use Acquired\Payments\Exception\Command\BuilderException;
-use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Psr\Log\LoggerInterface;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Payment;
+use Acquired\Payments\Test\Unit\Gateway\Request\AbstractBuilderTestCase;
 
-class CardVoidBuilderTest extends TestCase
+class CardVoidBuilderTest extends AbstractBuilderTestCase
 {
     private $loggerMock;
     private $cardVoidBuilder;
@@ -30,27 +27,10 @@ class CardVoidBuilderTest extends TestCase
         $this->cardVoidBuilder = new CardVoidBuilder($this->loggerMock);
     }
 
-    private function getPaymentMock(float $amount, $transactionId): PaymentDataObjectInterface
-    {
-        $orderMock = $this->createMock(Order::class);
-        $orderMock->method('getGrandTotal')->willReturn($amount);
-        $orderMock->method('getIncrementId')->willReturn('100000001');
-
-        $paymentMock = $this->createMock(Payment::class);
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-        $paymentMock->method('getAdditionalInformation')->with('transaction_id')->willReturn($transactionId);
-        $paymentMock->method('getLastTransId')->willReturn($transactionId);
-
-        $paymentDataObjectMock = $this->createMock(PaymentDataObjectInterface::class);
-        $paymentDataObjectMock->method('getPayment')->willReturn($paymentMock);
-
-        return $paymentDataObjectMock;
-    }
-
     public function testBuildSuccess()
     {
         $buildSubject = [
-            'payment' => $this->getPaymentMock(100.00, '10001'),
+            'payment' => $this->getPaymentMock(100.00, '10001', '100000001'),
         ];
 
         $result = $this->cardVoidBuilder->build($buildSubject);
@@ -67,7 +47,7 @@ class CardVoidBuilderTest extends TestCase
         $this->expectExceptionMessage('Missing transaction_id');
 
         $buildSubject = [
-            'payment' => $this->getPaymentMock(0.00, null)
+            'payment' => $this->getPaymentMock(0.00, null, '100000001')
         ];
 
         $this->cardVoidBuilder->build($buildSubject);

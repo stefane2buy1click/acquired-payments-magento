@@ -17,7 +17,7 @@ $title = $payment->getMethodInstance()->getTitle();
 
 <h4>
     <span class="acquired-title">Acquired Payments - <?= $title; ?></span>
-    <?php if($payment->getMethod() == 'acquired_card') : ?>
+    <?php if($payment->getMethod() == \Acquired\Payments\Ui\Method\CardProvider::CODE) : ?>
     <span class="acquired-card-icon"><img width="50" height="30" src="<?= $this->getCardIcon((string)$payment->getCcType()); ?>" title="<?= $title; ?>" alt="<?= $payment->getCcType(); ?>" /></span>
     <?php endif; ?>
 </h4>
@@ -31,7 +31,7 @@ $title = $payment->getMethodInstance()->getTitle();
             </td>
         </tr>
 
-        <?php if($payment->getMethod() == 'acquired_card') : ?>
+        <?php if($payment->getMethod() == \Acquired\Payments\Ui\Method\CardProvider::CODE) : ?>
             <tr>
                 <th><?php echo __('Transaction Type'); ?></th>
                 <td class="acquired-value">

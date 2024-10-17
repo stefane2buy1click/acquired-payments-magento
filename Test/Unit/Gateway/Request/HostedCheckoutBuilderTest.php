@@ -27,8 +27,9 @@ use Magento\Sales\Model\Order\Payment;
 use Magento\Quote\Model\Quote;
 use Acquired\Payments\Exception\Command\BuilderException;
 use Magento\Store\Model\Store;
+use Acquired\Payments\Test\Unit\Gateway\Request\AbstractBuilderTestCase;
 
-class HostedCheckoutBuilderTest extends TestCase
+class HostedCheckoutBuilderTest extends AbstractBuilderTestCase
 {
     private $logger;
     private $storeMock;
@@ -130,17 +131,10 @@ class HostedCheckoutBuilderTest extends TestCase
 
     private function createPaymentMock()
     {
-        $paymentMock = $this->createMock(Payment::class);
-        $orderMock = $this->createMock(Order::class);
         $quoteMock = $this->createMock(Quote::class);
-
-        $paymentMock->method('getOrder')->willReturn($orderMock);
-        $orderMock->method('getQuoteId')->willReturn('123');
         $this->quoteRepository->method('get')->willReturn($quoteMock);
-
-        $paymentDO = $this->createMock(PaymentDataObjectInterface::class);
-        $paymentDO->method('getPayment')->willReturn($paymentMock);
-
-        return SubjectReader::readPayment(['payment' => $paymentDO]);
+        return SubjectReader::readPayment([
+            'payment' => $this->getPaymentMock(100.00, '123456', '100000001')
+        ]);
     }
 }

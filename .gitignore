@@ -1,12 +1,5 @@
-.DS_Store
-node_modules/
-test-results/
-playwright-report/
-blob-report/
-playwright/.cache/
-test-results/
-playwright-report/
-blob-report/
-playwright/.cache/
-screenshots/
-.env
+composer.phar
+/vendor/
+
+# Ignoring Composer lock file as this is effectively a library
+composer.lock
