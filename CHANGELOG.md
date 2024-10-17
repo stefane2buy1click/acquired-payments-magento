@@ -2,6 +2,9 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.0.0-beta.7] - Beta version
+- Fix issue where create_card flag would save the customer card even with the box unticked
+
 ## [1.0.0-beta.6] - Beta version
 - Add unit tests for better code maintainance
 
