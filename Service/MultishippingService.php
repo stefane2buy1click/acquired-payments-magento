@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+
 namespace Acquired\Payments\Service;
 
 use Acquired\Payments\Api\Data\MultishippingInterface;

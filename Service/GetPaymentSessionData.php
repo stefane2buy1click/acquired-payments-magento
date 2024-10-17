@@ -24,6 +24,8 @@ use Magento\Framework\UrlInterface;
 use Acquired\Payments\Exception\Api\SessionException;
 use Acquired\Payments\Service\MultishippingService;
 use Magento\Framework\Pricing\PriceCurrencyInterface;
+use Acquired\Payments\Service\GetTransactionAddressData;
+use Acquired\Payments\Api\Data\TransactionAddressDataInterface;
 
 class GetPaymentSessionData implements PaymentSessionDataInterface
 {
@@ -52,7 +54,8 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
         private readonly CartRepositoryInterface $cartRepository,
         private readonly LoggerInterface $logger,
         private readonly MultishippingService $multishippingService,
-        private readonly PriceCurrencyInterface $priceCurrency
+        private readonly PriceCurrencyInterface $priceCurrency,
+        private readonly GetTransactionAddressData $getTransactionAddressData
     ) {
     }
 
@@ -96,19 +99,21 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
                 $payload['transaction']['custom_data'] = base64_encode($this->serializer->serialize($customData));
             }
 
-            $contactUrl = $this->cardConfig->getTdsContactUrl();
+            $contactUrl = $this->cardConfig->getTdsContactUrl() ?: '';
             $redirectUrl = $this->urlBuilder->getUrl('acquired/threedsecure/response');
             $webhookUrl = $this->urlBuilder->getUrl('acquired/webhook');
 
-            // if not https throw exception
-            if (strpos($contactUrl, 'https://') === false) {
-                throw new Exception('Contact URL must be https');
-            }
-            if (strpos($redirectUrl, 'https://') === false) {
-                throw new Exception('Redirect URL must be https');
-            }
-            if (strpos($webhookUrl, 'https://') === false) {
-                throw new Exception('Webhook URL must be https');
+            if($this->cardConfig->isTdsActive()) {
+                // if not https throw exception
+                if (strpos($contactUrl, 'https://') === false) {
+                    throw new Exception('Contact URL must be https');
+                }
+                if (strpos($redirectUrl, 'https://') === false) {
+                    throw new Exception('Redirect URL must be https');
+                }
+                if (strpos($webhookUrl, 'https://') === false) {
+                    throw new Exception('Webhook URL must be https');
+                }
             }
 
             $payload['tds'] = [
@@ -119,15 +124,25 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
                 'webhook_url' => $webhookUrl
             ];
 
+            $payload['payment_methods'] = $this->getAvailablePaymentMethods();
+
+            $payload['customer'] = [];
+            /**
+             * @var TransactionAddressDataInterface $addressData
+             */
+            $addressData = $this->getTransactionAddressData->execute($quote);
+            $payload['customer']['billing'] = $addressData->getBilling();
+            $payload['customer']['shipping'] = $addressData->getShipping() ?? [];
+
             if ($this->customerSession->isLoggedIn()) {
                 $acquiredCustomer = $this->createAcquiredCustomer->execute($this->customerSession->getCustomerId());
-                $payload['customer'] = [
-                    'customer_id' => $acquiredCustomer['customer_id']
-                ];
+                $payload['customer']['customer_id'] = $acquiredCustomer['customer_id'];
 
                 if ($this->cardConfig->isCreateCardEnabled()) {
                     $payload['payment']['create_card'] = true;
                     $payload['payment']['reference'] = $this->customerSession->getCustomerId();
+                } else {
+                    $payload['payment']['create_card'] = false;
                 }
             }
         } catch (Exception $e) {
@@ -138,5 +153,19 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
         }
 
         return $payload;
+    }
+
+    protected function getAvailablePaymentMethods() : array {
+        $paymentMethods = ['card'];
+
+        if($this->cardConfig->isApplePayEnabled()) {
+            $paymentMethods[] = 'apple_pay';
+        }
+
+        if($this->cardConfig->isGooglePayEnabled()) {
+            $paymentMethods[] = 'google_pay';
+        }
+
+        return $paymentMethods;
     }
 }

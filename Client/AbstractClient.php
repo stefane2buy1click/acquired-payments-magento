@@ -32,6 +32,10 @@ abstract class AbstractClient
 
     private const CACHE_KEY = 'acquired_access_token';
 
+    protected $excludedMidEndpoints = [
+        'payment-links'
+    ];
+
     /**
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
@@ -90,6 +94,20 @@ abstract class AbstractClient
                     'Content-Type' => 'application/json'
                 ]
             ];
+
+            // get company id from config
+            $companyId = $this->basicConfig->getCompanyId();
+
+            if ($companyId) {
+                $options['headers']['Company-Id'] = $companyId;
+            }
+
+            // get mid from config
+            $mid = $this->basicConfig->getMid();
+
+            if ($mid && !in_array($endpoint, $this->excludedMidEndpoints) ) {
+                $options['headers']['Mid'] = $mid;
+            }
 
             if ($payload) {
                 $options['body'] = $this->serializer->serialize($payload);

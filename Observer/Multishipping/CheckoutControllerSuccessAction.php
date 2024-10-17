@@ -93,8 +93,12 @@ class CheckoutControllerSuccessAction implements \Magento\Framework\Event\Observ
     protected function processHostedRedirect(MultishippingResultInterface $multishippingResult)
     {
         $orderIds = [];
+        $quoteId = null;
         foreach ($multishippingResult->getOrders() as $order) {
             $orderIds[] = $order->getIncrementId();
+            if(!$quoteId && $order->getQuoteId()) {
+                $quoteId = $order->getQuoteId();
+            }
         }
         $customData = [
             'custom1' => 'multishipping order',
@@ -105,7 +109,7 @@ class CheckoutControllerSuccessAction implements \Magento\Framework\Event\Observ
             $customData['customer_id'] = $multishippingResult->getCustomerId();
         }
 
-        $requestData = $this->hostedContext->hostedCheckoutBuilder->getData($multishippingResult->getMultishippingOrderId(), $multishippingResult->getAmount(), $customData);
+        $requestData = $this->hostedContext->hostedCheckoutBuilder->getData((int) $quoteId, $multishippingResult->getMultishippingOrderId(), $multishippingResult->getAmount(), $customData);
         $response = $this->gateway->getPaymentLinks()->generateLinkId($requestData);
 
         if ($response && $response['link_id']) {

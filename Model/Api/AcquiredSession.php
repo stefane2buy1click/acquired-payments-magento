@@ -64,6 +64,10 @@ class AcquiredSession implements SessionInterface
         // remove transaction amount to allow updates to the quote without recreating a new session
         unset($paymentData['transaction']['amount']);
 
+        // remove address data from fingerprint
+        unset($paymentData['customer']['billing']);
+        unset($paymentData['customer']['shipping']);
+
         return md5(trim(json_encode($paymentData)));
     }
 

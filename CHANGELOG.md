@@ -2,6 +2,17 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.0.0-beta.4] - Beta version
+- Excluded payment-links API call from adding Mid information as it was causing issues
+- Fix address data not being sent through on initial session creation and only on confirm params call
+- Fix address data not being sent on retry flow for hosted checkout
+- Code quality updates and refactoring to improve code stability and maintenance
+
+## [1.0.0-beta.3] - Beta version
+- Fix error with 3ds configuration validation when 3ds is disabled in configuration
+- Company-Id and Mid are now sent when communicating with Acquired API if the values are configured
+- Added payment method configuration to toggle Google/Apple pay availability when paying by cards
+
 ## [1.0.0-beta.2] - Beta version
 
 ## Added

@@ -67,7 +67,7 @@ class RetryPayment extends AbstractAction implements CsrfAwareActionInterface, H
             $customData['customer_id'] = $order->getCustomerId();
         }
 
-        $requestData = $isMultishipping ? $this->processMultishipping($order) : $this->hostedContext->hostedCheckoutBuilder->getData($order->getIncrementId(), $amount, $customData);
+        $requestData = $isMultishipping ? $this->processMultishipping($order) : $this->hostedContext->hostedCheckoutBuilder->getData((int) $order->getQuoteId(), $order->getIncrementId(), $amount, $customData);
         $requestData['transaction']['order_id'] = $requestData['transaction']['order_id'] . HostedContext::HOSTED_ORDER_ID_RETRY_IDENTIFIER . time();
 
         $response = $this->hostedContext->gateway->getPaymentLinks()->generateLinkId($requestData);
@@ -105,7 +105,7 @@ class RetryPayment extends AbstractAction implements CsrfAwareActionInterface, H
             $customData['customer_id'] = $multishippingResult->getCustomerId();
         }
 
-        $requestData = $this->hostedContext->hostedCheckoutBuilder->getData($multishippingResult->getMultishippingOrderId(), $multishippingResult->getAmount(), $customData);
+        $requestData = $this->hostedContext->hostedCheckoutBuilder->getData((int) $order->getQuoteId(), $multishippingResult->getMultishippingOrderId(), $multishippingResult->getAmount(), $customData);
 
         return $requestData;
     }
