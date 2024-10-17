@@ -1,12 +1,10 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
@@ -30,6 +28,9 @@
                                                                     <item name="component" xsi:type="string">Acquired_Payments/js/view/payment/acquired</item>
                                                                     <item name="methods" xsi:type="array">
                                                                         <item name="acquired_card" xsi:type="array">
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
+                                                                        </item>
+                                                                        <item name="acquired_pay_by_bank" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                     </item>

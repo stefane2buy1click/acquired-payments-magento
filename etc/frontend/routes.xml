@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- 
+<!--
 /**
  * Acquired.com Payments Integration for Magento2
  *
@@ -8,7 +8,7 @@
  * This file is open source under the MIT license.
  * Please see LICENSE file for more details.
  */
- -->
+-->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="standard">
         <route id="acquired" frontName="acquired">

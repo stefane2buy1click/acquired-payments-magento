@@ -1,12 +1,13 @@
 <?php
 
 /**
- * Acquired.com Payments Integration for Magento2
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ *
+ *
  */
 
 namespace Acquired\Payments\Model\Webhook\Processor;
@@ -17,6 +18,10 @@ use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Model\Service\InvoiceService;
+use Magento\Framework\DB\Transaction;
+use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
+use Magento\Sales\Model\Order;
 use Acquired\Payments\Gateway\Config\Basic;
 
 /**
@@ -39,6 +44,9 @@ class StatusUpdateProcessor extends AbstractProcessor
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly OrderManagementInterface $orderManagement,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly InvoiceService $invoiceService,
+        private readonly Transaction $transaction,
+        private readonly InvoiceSender $invoiceSender
     )
     {
         parent::__construct($basicConfig, $serializer);
@@ -57,7 +65,12 @@ class StatusUpdateProcessor extends AbstractProcessor
         $webhookBody = $webhookData['webhook_body'];
         $incrementId = $webhookBody['order_id'];
 
-        $order = $this->getOrderByIncrementId($webhookBody['order_id']);
+        if(strpos($incrementId, 'R-')) {
+            // replace everything starting from 'R-' with ''
+            $incrementId = substr($incrementId, 0, strpos($incrementId, 'R-'));
+        }
+
+        $order = $this->getOrderByIncrementId($incrementId);
         if (!$order) {
             return $this->createResponse(__('Order #%1 not found.', $incrementId));
         }
@@ -66,7 +79,73 @@ class StatusUpdateProcessor extends AbstractProcessor
             return $this->cancelOrder($order, $incrementId);
         }
 
+        if (
+            ($webhookBody['status'] === self::STATUS_EXECUTED || $webhookBody['status'] === self::STATUS_SETTLED || $webhookBody['status'] === self::STATUS_SUCCESS)
+            && $this->canInvoiceOrder($order)
+        ) {
+            $order->setState(Order::STATE_PROCESSING);
+            return $this->invoiceOrder($order, $incrementId, $webhookBody['transaction_id']);
+        }
+
         return $this->createResponse(__('No action required for order #%1.', $incrementId));
+    }
+
+    private function canInvoiceOrder(OrderInterface $order): bool
+    {
+        // check payment method and status
+        $payment = $order->getPayment();
+        if ($payment->getMethod() !== 'acquired_pay_by_bank') {
+            return false;
+        }
+
+        if ($order->getState() !== 'payment_review') {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Creates an invoice for the provided order entity and increment ID.
+     *
+     * @param OrderInterface $order The order entity to be cancelled.
+     * @param string $incrementId The increment ID of the order to provide context in the response.
+     * @param string $transactionId New and latest Acquired transaction Id.
+     * @return array Associative array indicating the success status and message of the cancellation action.
+     */
+    private function invoiceOrder(OrderInterface $order, string $incrementId, string $transactionId): array
+    {
+        if (!$order->canInvoice()) {
+            return $this->createResponse(__('Order #%1 cannot be invoiced.', $incrementId));
+        }
+
+        try {
+
+            /** @var \Magento\Sales\Model\Order\Payment $payment */
+            $payment = $order->getPayment();
+            $payment->setLastTransId($transactionId);
+
+            $invoice = $this->invoiceService->prepareInvoice($order);
+            $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE);
+            $invoice->register();
+            $invoice->save();
+
+            $transactionSave =
+                $this->transaction
+                    ->addObject($invoice)
+                    ->addObject($invoice->getOrder())
+                    ->addObject($payment);
+            $transactionSave->save();
+
+            $this->invoiceSender->send($invoice);
+            $order->addCommentToStatusHistory(
+                __('Notified customer about invoice creation #%1.', $invoice->getId())
+            )->setIsCustomerNotified(true)->save();
+
+            return $this->createResponse( __('Order #%1 invoiced successfully.', $incrementId), true);
+        } catch (LocalizedException $e) {
+            return $this->createResponse( __('Error invoicing order #%1: %2', $incrementId, $e->getMessage()));
+        }
     }
 
     /**

@@ -1,12 +1,13 @@
 <?php
 
 /**
- * Acquired.com Payments Integration for Magento2
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ *
+ *
  */
 
 namespace Acquired\Payments\Gateway\Config;
@@ -17,7 +18,7 @@ use Magento\Store\Model\ScopeInterface;
 /**
  * @class Basic
  *
- * Handles basic configuration settings for the Acquired Payment module.
+ * Handles basic configuration settings for the Acquired Limited Payment module.
  */
 class Basic
 {
@@ -30,15 +31,15 @@ class Basic
     protected const KEY_MODE = 'mode';
     protected const KEY_API_ID = 'api_id';
     protected const KEY_API_SECRET = 'api_secret';
-    protected const KEY_HMAC_KEY = 'hmac_key';
     protected const KEY_PUBLIC_KEY = 'public_key';
     protected const KEY_TEST_API_ID = 'test_api_id';
     protected const KEY_TEST_API_SECRET = 'test_api_secret';
-    protected const KEY_TEST_HMAC_KEY = 'test_hmac_key';
     protected const KEY_TEST_PUBLIC_KEY = 'test_public_key';
     protected const KEY_COMPANY = 'company';
     protected const KEY_MID = 'mid';
     protected const KEY_DEBUG_LOG = 'debug_log';
+    protected const HOSTED_PAYMENT_PRODUCTION_URL = 'https://pay.acquired.com/v1/';
+    protected const HOSTED_PAYMENT_TEST_URL = 'https://test-pay.acquired.com/v1/';
 
 
     /**
@@ -80,16 +81,6 @@ class Basic
     }
 
     /**
-     * Retrieves the appropriate HMAC key based on the current mode (test or production).
-     *
-     * @return string|null The HMAC key for the current mode.
-     */
-    public function getHmacKey(): ?string
-    {
-        return $this->getValue($this->getMode() ? self::KEY_HMAC_KEY :  self::KEY_TEST_HMAC_KEY);
-    }
-
-    /**
      * Retrieves the appropriate Public Key based on the current mode (test or production).
      *
      * @return string|null The Public Key for the current mode.
@@ -127,6 +118,17 @@ class Basic
     public function isDebugLogEnabled(): bool
     {
         return $this->isSetFlag(self::KEY_DEBUG_LOG);
+    }
+
+    /**
+     * Returns hosted payment payment URL
+     *
+     * @return string
+     */
+    public function getRedirectUrl(): string
+    {
+        $url = $this->getMode() ? self::HOSTED_PAYMENT_PRODUCTION_URL : self::HOSTED_PAYMENT_TEST_URL;
+        return $url;
     }
 
     /**

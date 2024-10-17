@@ -1,12 +1,13 @@
 <?php
 
 /**
- * Acquired.com Payments Integration for Magento2
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ *
+ *
  */
 
 namespace Acquired\Payments\Gateway\Config\Card;
@@ -22,7 +23,7 @@ use Magento\Payment\Model\MethodInterface;
 /**
  * @class CardConfig
  *
- * Handles Card Method configuration settings for the Acquired Payment module.
+ * Handles Card Method configuration settings for the Acquired Limited Payment module.
  */
 class Config extends GatewayConfig
 {
@@ -155,7 +156,7 @@ class Config extends GatewayConfig
     {
         return $this->getValue(self::KEY_STYLE, $storeId ?? $this->storeConfigResolver->getStoreId());
     }
-    
+
     /**
      * Get 3ds window size
      *

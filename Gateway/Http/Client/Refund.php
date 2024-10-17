@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Gateway\Http\Client;
@@ -62,7 +60,7 @@ class Refund implements ClientInterface
                 $body['transaction_id'],
                 $body['reference']
             );
-            
+
             /*
              * check if refund is declined for whatever reason, possibly 24 hours has not passed
              * if yes, try to void it if full amount is requested
@@ -70,7 +68,7 @@ class Refund implements ClientInterface
             if (isset($response['status']) && $response['status'] === 'declined') {
                 if ($body['reference']['amount'] == $body['grand_total']) {
                     $response = $this->gateway->getTransaction()->void($body['transaction_id']);
-                    
+
                     if ($response['status'] === 'declined') {
                         throw new RequestException(__('Void transaction declined by payment gateway.'));
                     }

@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Service;
@@ -47,7 +45,8 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
         private readonly SerializerInterface $serializer,
         private readonly UrlInterface $urlBuilder,
         private readonly CartRepositoryInterface $cartRepository,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly MultishippingService $multishippingService
     ) {
     }
 
@@ -73,6 +72,15 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
                 ]
             ];
 
+            // if multishipping checkout, set capture to false, as we want to authorize only
+            if ($quote->getIsMultiShipping()) {
+                $orderIds = $this->multishippingService->reserveOrderIds($quote);
+                $payload['transaction']['capture'] = false;
+                $payload['transaction']['custom1'] = 'multishipping order';
+                $payload['transaction']['custom2'] = implode(",", $orderIds);
+                $payload['transaction']['order_id'] = $orderIds[0] . '-ACQM';
+            }
+
             if ($customData) {
                 $payload['transaction']['custom_data'] = base64_encode($this->serializer->serialize($customData));
             }
@@ -91,7 +99,6 @@ class GetPaymentSessionData implements PaymentSessionDataInterface
             if (strpos($webhookUrl, 'https://') === false) {
                 $webhookUrl = str_replace('http://', 'https://', $webhookUrl);
             }
-
 
             $payload['tds'] = [
                 'is_active' => $this->cardConfig->isTdsActive(),

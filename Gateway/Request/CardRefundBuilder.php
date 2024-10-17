@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Gateway\Request;
@@ -41,17 +39,19 @@ class CardRefundBuilder implements BuilderInterface
             $payment = SubjectReader::readPayment($buildSubject)->getPayment();
             $order = $payment->getOrder();
             $amount = (float)SubjectReader::readAmount($buildSubject);
-            
+
             if ($amount <= 0) {
                 throw new BuilderException(__('Refunds cannot be processed if the amount is 0. Please specify a different amount.'));
             }
-            
-            if (empty($payment->getAdditionalInformation('transaction_id'))) {
+
+            $transactionId = $payment->getAdditionalInformation('transaction_id') ?: $payment->getLastTransId();
+
+            if (empty($transactionId)) {
                 throw new BuilderException(__('Missing transaction_id'));
             }
 
             return [
-                'transaction_id' => $payment->getAdditionalInformation('transaction_id'),
+                'transaction_id' => $transactionId,
                 'grand_total' => $order->getGrandTotal(),
                 'reference' => [
                     'reference' => $payment->getOrder()?->getIncrementId(),

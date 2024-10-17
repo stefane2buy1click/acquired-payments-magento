@@ -31,13 +31,13 @@
                         <source_model>Acquired\Payments\Model\System\Config\IntegrationMode</source_model>
                     </field>
                     <field id="api_id" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="20">
-                        <label>Production Api Id</label>
+                        <label>App ID</label>
                         <depends>
                             <field id="mode">1</field>
                         </depends>
                     </field>
                     <field id="api_secret" type="obscure" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="30">
-                        <label>Production Api Secret</label>
+                        <label>App Key</label>
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                         <depends>
                             <field id="mode">1</field>
@@ -45,44 +45,28 @@
                     </field>
 
                     <field id="test_api_id" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="40">
-                        <label>Test Api Id</label>
+                        <label>App ID</label>
                         <depends>
                             <field id="mode">0</field>
                         </depends>
                     </field>
                     <field id="test_api_secret" type="obscure" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="50">
-                        <label>Test Api Secret</label>
+                        <label>App Key</label>
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                         <depends>
                             <field id="mode">0</field>
                         </depends>
                     </field>
 
-                    <field id="hmac_key" type="obscure" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="60">
-                        <label>Production HMAC Key</label>
-                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                        <depends>
-                            <field id="mode">1</field>
-                        </depends>
-                    </field>
-
                     <field id="public_key" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="70">
-                        <label>Production Public Key</label>
+                        <label>Public Key</label>
                         <depends>
                             <field id="mode">1</field>
                         </depends>
                     </field>
 
                     <field id="test_public_key" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="80">
-                        <label>Test Public Key</label>
-                        <depends>
-                            <field id="mode">0</field>
-                        </depends>
-                    </field>
-
-                    <field id="test_hmac_key" type="obscure" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="90">
-                        <label>Test HMAC Key</label>
-                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <label>Public Key</label>
                         <depends>
                             <field id="mode">0</field>
                         </depends>
@@ -127,7 +111,7 @@
                     <field id="create_card" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="40">
                         <label>Save Card</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <comment>Save customer credit card on ACQUIRED.com customer account</comment>
+                        <comment><![CDATA[Save customer credit card on <a href="https://acquired.com" target="_blank">acquired.com</a> customer account.]]></comment>
                         <config_path>payment/acquired_card/create_card</config_path>
                     </field>
                     <field id="tds_active" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="50" >
@@ -165,9 +149,33 @@
                         </depends>
                     </field>
                     <field id="style" type="textarea" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="80">
-                        <label>Custom Card Component Style</label>
-                        <comment>You can customize form component style here, paste a json config</comment>
+                        <label>Custom Component Styling</label>
+                        <comment>You can customise form component style here.</comment>
                         <config_path>payment/acquired_card/style</config_path>
+                    </field>
+                </group>
+
+                <group id="acquired_pay_by_bank" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                    <label>PayByBank</label>
+                    <field id="active" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="10">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/acquired_pay_by_bank/active</config_path>
+                    </field>
+                    <field id="title" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="20">
+                        <label>Method Title</label>
+                        <comment>Method title as it will appear for customers in checkout</comment>
+                        <config_path>payment/acquired_pay_by_bank/title</config_path>
+                    </field>
+
+                    <field id="redirect_url" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="30">
+                        <label>Redirect Url</label>
+                        <config_path>payment/acquired_pay_by_bank/redirect_url</config_path>
+                    </field>
+
+                    <field id="webhook_url" type="text" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="40">
+                        <label>Webhook Url</label>
+                        <config_path>payment/acquired_pay_by_bank/webhook_url</config_path>
                     </field>
                 </group>
             </group>

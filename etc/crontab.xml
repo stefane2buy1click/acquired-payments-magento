@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<!--
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="acquired">
+        <job name="acquired_payments_cleanmultishipping" instance="Acquired\Payments\Cron\CleanMultishipping" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
+
+        <job name="acquired_payments_cancel_pending_orders" instance="Acquired\Payments\Cron\CancelPendingOrders" method="execute">
+            <schedule>*/5 * * * *</schedule>
+        </job>
+    </group>
+</config>

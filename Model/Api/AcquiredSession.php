@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Model\Api;
@@ -46,7 +44,8 @@ class AcquiredSession implements SessionInterface
     ) {
     }
 
-    protected function getCheckoutSession() {
+    protected function getCheckoutSession()
+    {
         return $this->state->getAreaCode() === 'adminhtml' ? $this->backendQuoteSession : $this->checkoutSession;
     }
 
@@ -73,10 +72,11 @@ class AcquiredSession implements SessionInterface
      * @return SessionDataInterface
      * @throws SessionException
      */
-    protected function createNewSession(array $payload, string $nonce) : SessionDataInterface {
+    protected function createNewSession(array $payload, string $nonce) : SessionDataInterface
+    {
         $acquiredSession = $this->sessionIdFactory->create();
-
         $quote = $this->getQuote();
+
         if(!$quote->getReservedOrderId() || $nonce !== $this->getCheckoutSession()->getAcquiredSessionNonce()) {
             $quote->setReservedOrderId(null);
             $quote->reserveOrderId();
@@ -87,8 +87,8 @@ class AcquiredSession implements SessionInterface
             $response = $this->gateway->getComponent()->create(
                 $payload
             );
-            $acquiredSession->setSessionId($response['session_id']);
 
+            $acquiredSession->setSessionId($response['session_id']);
             $this->getCheckoutSession()->setAcquiredSessionId($response['session_id']);
             $this->getCheckoutSession()->setAcquiredSessionFingerPrint($this->createFingerprint($payload));
             $this->getCheckoutSession()->setAcquiredSessionNonce($nonce);
@@ -109,10 +109,11 @@ class AcquiredSession implements SessionInterface
      * @return SessionDataInterface
      * @throws SessionException
      */
-    protected function updateSession(string $sessionId, array $payload, string $nonce) : SessionDataInterface {
+    protected function updateSession(string $sessionId, array $payload, string $nonce) : SessionDataInterface
+    {
         $acquiredSession = $this->sessionIdFactory->create();
-
         $quote = $this->getQuote();
+
         if(!$quote->getReservedOrderId() || $nonce !== $this->getCheckoutSession()->getAcquiredSessionNonce()) {
             $quote->setReservedOrderId(null);
             $quote->reserveOrderId();
@@ -136,6 +137,7 @@ class AcquiredSession implements SessionInterface
 
             throw new SessionException(__('Update Acquired session failed!'));
         }
+
         return $acquiredSession;
     }
 
@@ -198,7 +200,8 @@ class AcquiredSession implements SessionInterface
      * @param string $nonce
      * @throws SessionException
      */
-    public function prepareForPurchase(string $nonce) : void {
+    public function prepareForPurchase(string $nonce) : void
+    {
         if($nonce !== $this->getCheckoutSession()->getAcquiredSessionNonce()) {
             throw new SessionException(__('Nonce does not match the current session!'));
         }
@@ -234,7 +237,8 @@ class AcquiredSession implements SessionInterface
      *
      * @return Quote
      */
-    protected function getQuote() : Quote {
+    protected function getQuote() : Quote
+    {
         return $this->getCheckoutSession()->getQuote();
     }
 
@@ -244,12 +248,12 @@ class AcquiredSession implements SessionInterface
      * @param array $paymentData
      * @return bool
      */
-    protected function validateFingerprint($paymentData) : bool {
+    protected function validateFingerprint($paymentData) : bool
+    {
         // create fingerprint
         $payloadFingerprint = $this->createFingerprint($paymentData);
         // compare fingerprint with payment session data
         $fingerPrintId = $this->getCheckoutSession()->getAcquiredSessionFingerPrint();
         return $fingerPrintId === $payloadFingerprint;
     }
-
 }

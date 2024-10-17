@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Gateway\Response\Card;
@@ -24,6 +22,7 @@ class CaptureTransactionHandler implements HandlerInterface
 
     /**
      * @param LoggerInterface $logger
+     * @param Gateway $gateway
      */
     public function __construct(
         private readonly LoggerInterface $logger
@@ -41,9 +40,13 @@ class CaptureTransactionHandler implements HandlerInterface
         try {
             /** @var OrderPaymentInterface $payment */
             $payment = SubjectReader::readPayment($handlingSubject)->getPayment();
-            
+
             $this->setTransactionDataToPayment($payment, $response);
-            $this->setAdditionalTransactionData($payment, $response);
+
+            /** if this was auth only then no need to set additional data again, as they will be empty **/
+            if (isset($response['payment_method'])) {
+                $this->setAdditionalTransactionData($payment, $response);
+            }
         } catch (Exception $e) {
             $message = __('Capture Handler failed: %1', $e->getMessage());
             $this->logger->critical($message, ['exception' => $e]);
@@ -51,7 +54,7 @@ class CaptureTransactionHandler implements HandlerInterface
             throw new HandlerException($message);
         }
     }
-    
+
     /**
      * Set Transaction data to payment
      *

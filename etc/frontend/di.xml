@@ -15,6 +15,7 @@
         <arguments>
             <argument name="configProviders" xsi:type="array">
                 <item name="acquired" xsi:type="object">Acquired\Payments\Ui\Method\CardProvider</item>
+                <item name="acquired_pay_by_bank" xsi:type="object">Acquired\Payments\Ui\Method\PayByBankProvider</item>
             </argument>
         </arguments>
     </type>

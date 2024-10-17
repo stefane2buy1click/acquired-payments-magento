@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Model\Api;
@@ -16,6 +14,7 @@ use Acquired\Payments\Api\AcquiredCustomerRepositoryInterface;
 use Acquired\Payments\Client\Gateway;
 use Acquired\Payments\Model\AcquiredCustomerFactory;
 use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -26,12 +25,14 @@ class CreateAcquiredCustomer
     /**
      * @param CustomerSession $customerSession
      * @param Gateway $gateway
+     * @param CustomerRepositoryInterface $customerRepository
      * @param AcquiredCustomerFactory $acquiredCustomerFactory
      * @param AcquiredCustomerRepositoryInterface $acquiredCustomerRepository
      */
     public function __construct(
         private readonly CustomerSession $customerSession,
         private readonly Gateway $gateway,
+        private readonly CustomerRepositoryInterface $customerRepository,
         private readonly AcquiredCustomerFactory $acquiredCustomerFactory,
         private readonly AcquiredCustomerRepositoryInterface $acquiredCustomerRepository
     ) {
@@ -40,19 +41,20 @@ class CreateAcquiredCustomer
     /**
      * Initialize acquired customer
      *
+     * @param int|null $customerId
      * @return array|null
      * @throws LocalizedException
      */
-    public function execute(): ?array
+    public function execute($customerId = null): ?array
     {
         if ($this->customerSession->isLoggedIn()) {
             try {
                 $acquiredCustomerId = $this->acquiredCustomerRepository->getByCustomerId(
-                    (int) $this->customerSession->getCustomerId()
+                    (int) ($customerId ? $customerId : $this->customerSession->getCustomerId())
                 )->getAcquiredCustomerId();
                 return $this->gateway->getCustomer()->get($acquiredCustomerId);
             } catch (NoSuchEntityException) {
-                return $this->createCustomer();
+                return $this->createCustomer($customerId);
             } catch (\Exception $e) {
                 return null;
             }
@@ -64,17 +66,18 @@ class CreateAcquiredCustomer
     /**
      * Create acquired customer
      *
+     * @param int|null $customerId
      * @return array
      * @throws LocalizedException
      */
-    private function createCustomer(): array
+    private function createCustomer($customerId = null): array
     {
         try {
-            $customerData = $this->getCustomerData();
+            $customerData = $this->getCustomerData($customerId);
             $result = $this->gateway->getCustomer()->create($customerData);
 
             $acquiredCustomer = $this->acquiredCustomerFactory->create();
-            $acquiredCustomer->setCustomerId((int) $this->customerSession->getCustomerId())
+            $acquiredCustomer->setCustomerId((int) $customerId)
                 ->setAcquiredCustomerId($result['customer_id']);
             $this->acquiredCustomerRepository->save($acquiredCustomer);
 
@@ -89,15 +92,16 @@ class CreateAcquiredCustomer
     /**
      * Get customer data
      *
+     * @param int|null $customerId
      * @return array
      */
-    public function getCustomerData(): array
+    public function getCustomerData($customerId = null): array
     {
-        if (!$this->customerSession->isLoggedIn()) {
+        if (!$customerId && !$this->customerSession->isLoggedIn()) {
             return [];
         }
 
-        $customer = $this->customerSession->getCustomer();
+        $customer = $customerId ? $this->customerRepository->getById($customerId) : $this->customerSession->getCustomer();
         $customerData = [
             'reference' => $customer->getId(),
             'first_name' => $customer->getFirstname(),

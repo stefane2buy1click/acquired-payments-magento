@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="default"/>
+    <body>
+        <referenceContainer name="content">
+            <block class="Acquired\Payments\Block\Hosted\Response" name="acquired_hosted_response" cacheable="false" />
+        </referenceContainer>
+    </body>
+</page>

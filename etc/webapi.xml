@@ -34,4 +34,10 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <route method="POST" url="/V1/acquired/multishipping">
+        <service class="Acquired\Payments\Model\Api\CreateMultiShipping" method="execute"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
 </routes>

@@ -2,12 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Acquired.com Payments Integration for Magento2
+ * Acquired Limited Payment module (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
- *
- * This file is open source under the MIT license.
- * Please see LICENSE file for more details.
+ * Copyright (c) 2023 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
  */
 
 namespace Acquired\Payments\Block;
@@ -22,7 +20,7 @@ use Magento\Framework\Serialize\Serializer\Serialize;
 class Info extends ConfigurableInfo
 {
     protected $_template = 'info/info.phtml';
-    
+
     /**
      * @param Context $context
      * @param ConfigInterface $config
@@ -35,13 +33,13 @@ class Info extends ConfigurableInfo
     ) {
         parent::__construct($context, $config);
     }
-    
+
     public function toPdf()
     {
         $this->setTemplate('Acquired_Payments::pdf/info.phtml');
         return $this->toHtml();
     }
-    
+
     /**
      * Returns payment additional info value
      * @param object $payment
@@ -52,14 +50,14 @@ class Info extends ConfigurableInfo
     {
         return $payment->getAdditionalInformation($key) ?: 'N/A';
     }
-    
+
     /**
      * Returns card icon
      * @params string $card
      * @return string
      */
     public function getCardIcon(string $card): string
-    {        
+    {
         switch (strtolower($card)) {
             case "visa":
                 $image = $this->assetRepository->getUrl("Acquired_Payments::img/card-icons/visa.png");
@@ -79,7 +77,7 @@ class Info extends ConfigurableInfo
             default:
                 $image = $this->assetRepository->getUrl("Acquired_Payments::img/card-icons/generic.png");
         }
-        
-        return $image; 
+
+        return $image;
     }
 }

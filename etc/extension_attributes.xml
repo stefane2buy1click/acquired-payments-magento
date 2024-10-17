@@ -20,4 +20,12 @@
             </join>
         </attribute>
     </extension_attributes>
+
+    <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
+        <attribute code="payment_method" type="string" >
+            <join reference_table="sales_order_payment" reference_field="parent_id" join_on_field="entity_id">
+                <field>method</field>
+            </join>
+        </attribute>
+    </extension_attributes>
 </config>

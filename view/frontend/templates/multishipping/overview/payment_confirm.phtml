@@ -1,0 +1,109 @@
+<?php if ($block->willPayWithAcquired()): ?>
+
+    <?php $serializedCheckoutConfig = /* @noEscape */ $block->getSerializedCheckoutConfig();
+    $scriptString = <<<script
+        window.checkoutConfig = {$serializedCheckoutConfig};
+        // Create aliases for customer.js model from customer module
+        window.isCustomerLoggedIn = window.checkoutConfig.isCustomerLoggedIn;
+        window.customerData = window.checkoutConfig.customerData;
+script;
+    ?>
+
+    <?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
+
+  <script type="application/javascript">
+
+    window.checkoutConfig.storeCode = window.checkoutConfig.storeCode || '<?= $block->getStoreCode(); //phpcs:ignore ?>';
+    require([
+        'uiLayout',
+        'jquery',
+        'acquiredLoader',
+        'Acquired_Payments/js/action/place-multishipping-order',
+        'domReady!'
+    ],
+    function (layout, $, acquiredLoader, placeOrder)
+    {
+
+        var overviewPostButton = $('#review-button');
+        if (overviewPostButton.length == 0)
+        {
+            alert( $.mage.__("Sorry, the selected payment method is not available. Please use a different payment method.") );
+            window.history.back();
+        }
+
+        if (!<?= $block->hasPaymentMethod() //phpcs:ignore ?>)
+        {
+            $.mage.redirect("<?= $block->getUrl('multishipping/checkout/billing'); //phpcs:ignore ?>");
+        }
+
+        var params = <?= json_encode($block->getParams()); //phpcs:ignore ?>;
+
+        <?php if($block->getPaymentMethod() == 'acquired_card'): ?>
+            var paymentMethodData = {
+                method: 'acquired_card'
+            };
+            acquiredLoader.waitForAcquired.then(function() {
+                layout([
+                    {
+                        component: 'Magento_Ui/js/view/messages',
+                        name: 'payment_method_acquired_messages',
+                    },
+                    {
+                        component: 'Acquired_Payments/js/view/payment/method-renderer/multishipping/card-review',
+                        name: 'payment_method_acquired_card',
+                        method: paymentMethodData.method,
+                        item: paymentMethodData
+                    }
+                ]);
+
+                $('body').trigger('contentUpdated');
+            });
+        <?php endif; ?>
+
+        <?php if($block->getPaymentMethod() == 'acquired_pay_by_bank'): ?>
+            var paymentMethodData = {
+                method: 'acquired_pay_by_bank'
+            };
+            layout([
+                {
+                    component: 'Magento_Ui/js/view/messages',
+                    name: 'payment_method_acquired_messages',
+                },
+                {
+                    component: 'Acquired_Payments/js/view/payment/method-renderer/multishipping/pay-by-bank-review',
+                    name: 'payment_method_acquired_pay_by_bank',
+                    method: paymentMethodData.method,
+                    item: paymentMethodData
+                }
+            ]);
+
+            $('body').trigger('contentUpdated');
+
+        <?php endif; ?>
+
+
+
+        overviewPostButton.click(function(e)
+        {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    });
+  </script>
+<?php endif; ?>
+
+<div id="payment-review-messages" data-role="checkout-messages" data-bind="scope:'payment_method_acquired_messages'">
+    <!-- ko template: getTemplate() --><!-- /ko -->
+</div>
+
+<?php if($block->getPaymentMethod() == 'acquired_card'): ?>
+<div id="customjs-component" data-bind="scope:'payment_method_acquired_card'">
+    <!-- ko template: getTemplate() --><!-- /ko -->
+</div>
+<?php endif; ?>
+
+<?php if($block->getPaymentMethod() == 'acquired_pay_by_bank'): ?>
+<div id="customjs-component" data-bind="scope:'payment_method_acquired_pay_by_bank'">
+    <!-- ko template: getTemplate() --><!-- /ko -->
+</div>
+<?php endif; ?>
