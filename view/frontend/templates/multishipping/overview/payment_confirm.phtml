@@ -38,9 +38,9 @@ script;
 
         var params = <?= json_encode($block->getParams()); //phpcs:ignore ?>;
 
-        <?php if($block->getPaymentMethod() == 'acquired_card'): ?>
+        <?php if($block->getPaymentMethod() == \Acquired\Payments\Ui\Method\CardProvider::CODE): ?>
             var paymentMethodData = {
-                method: 'acquired_card'
+                method: "<?= \Acquired\Payments\Ui\Method\CardProvider::CODE; ?>"
             };
             acquiredLoader.waitForAcquired.then(function() {
                 layout([
@@ -60,9 +60,9 @@ script;
             });
         <?php endif; ?>
 
-        <?php if($block->getPaymentMethod() == 'acquired_pay_by_bank'): ?>
+        <?php if($block->getPaymentMethod() == \Acquired\Payments\Ui\Method\PayByBankProvider::CODE): ?>
             var paymentMethodData = {
-                method: 'acquired_pay_by_bank'
+                method: "<?= \Acquired\Payments\Ui\Method\PayByBankProvider::CODE; ?>"
             };
             layout([
                 {
@@ -96,13 +96,13 @@ script;
     <!-- ko template: getTemplate() --><!-- /ko -->
 </div>
 
-<?php if($block->getPaymentMethod() == 'acquired_card'): ?>
+<?php if($block->getPaymentMethod() == \Acquired\Payments\Ui\Method\CardProvider::CODE): ?>
 <div id="customjs-component" data-bind="scope:'payment_method_acquired_card'">
     <!-- ko template: getTemplate() --><!-- /ko -->
 </div>
 <?php endif; ?>
 
-<?php if($block->getPaymentMethod() == 'acquired_pay_by_bank'): ?>
+<?php if($block->getPaymentMethod() == \Acquired\Payments\Ui\Method\PayByBankProvider::CODE): ?>
 <div id="customjs-component" data-bind="scope:'payment_method_acquired_pay_by_bank'">
     <!-- ko template: getTemplate() --><!-- /ko -->
 </div>
