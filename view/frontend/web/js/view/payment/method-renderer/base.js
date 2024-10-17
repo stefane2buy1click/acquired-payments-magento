@@ -9,7 +9,9 @@ define([
     'mage/storage',
     'Magento_Checkout/js/model/url-builder',
     'Magento_Ui/js/model/messageList',
-    'Magento_Checkout/js/action/redirect-on-success'
+    'Magento_Checkout/js/action/redirect-on-success',
+    'Magento_Checkout/js/model/payment/additional-validators',
+    'Magento_CheckoutAgreements/js/model/agreement-validator'
 ], function (
     _,
     $,
@@ -22,6 +24,8 @@ define([
     urlBuilder,
     messageList,
     redirectOnSuccessAction,
+    additionalValidators,
+    agreementValidator
 ) {
 
     return Component.extend({
@@ -34,6 +38,7 @@ define([
             acquiredComponent: null,
             sessionId: null,
             placeholder: '#acquired-payments-card-component',
+            agreements: '.checkout-agreements',
             /**
              * Additional payment data
              *
@@ -217,11 +222,30 @@ define([
         },
 
         /**
+         * Validation
+         */
+        validate: function() {
+            if(!this.acquiredComponent) {
+                return false;
+            }
+
+            if ($(this.agreements).find('input[type="checkbox"]:not(:checked)').length > 0) {
+                return false;
+            }
+
+            return true;
+        },
+
+        /**
          * Action to place order
          * @param {String} key
          */
         placeOrder: async function (key) {
             let self = this;
+
+            if (!this.validate() || !additionalValidators.validate() || !agreementValidator.validate()) {
+                return false;
+            }
 
             fullScreenLoader.startLoader();
             this.isPlaceOrderActionAllowed(false);

@@ -94,7 +94,7 @@ class Index extends Action implements HttpPostActionInterface, CsrfAwareActionIn
             $this->setResponseData(
                 $result,
                 true,
-                __('Webhook processed successfully.'),
+                (string) __('Webhook processed successfully.'),
                 $processorResponse
             );
 

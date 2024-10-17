@@ -74,7 +74,7 @@ class AcquiredCustomer
 
                 $extensionAttributes->setAcquiredCustomerId($acquiredCustomer->getAcquiredCustomerId());
             } catch (NoSuchEntityException $e) {
-                $this->logger->critical(__("Exception trying to set acquired customer id: %1", $e->getMessage()), ['exception' => $e]);
+                // do nothing as this causes too much logging otherwise
             }
         }
     }
