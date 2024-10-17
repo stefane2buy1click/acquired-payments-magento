@@ -2,6 +2,9 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.0.0-beta.6] - Beta version
+- Add unit tests for better code maintainance
+
 ## [1.0.0-beta.5] - Beta version
 - Fix authorization token cache issue not being split by environment
 - Fix bug where retry payment would fail if amount was not a float but a string
