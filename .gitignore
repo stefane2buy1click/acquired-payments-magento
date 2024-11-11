@@ -1,0 +1,5 @@
+composer.phar
+/vendor/
+
+# Ignoring Composer lock file as this is effectively a library
+composer.lock

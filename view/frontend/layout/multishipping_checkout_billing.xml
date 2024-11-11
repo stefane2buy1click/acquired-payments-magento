@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="checkout_billing">
+            <arguments>
+                <argument name="checkout_data" xsi:type="object">Magento\Multishipping\Block\DataProviders\Billing</argument>
+                <argument name="form_templates" xsi:type="array">
+                    <item name="acquired_card" xsi:type="string">Acquired_Payments::multishipping/form.phtml</item>
+                    <item name="acquired_pay_by_bank" xsi:type="string">Acquired_Payments::multishipping/hosted-form.phtml</item>
+                </argument>
+                <argument name="cacheable" xsi:type="boolean">false</argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

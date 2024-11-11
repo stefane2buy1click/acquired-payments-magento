@@ -1,0 +1,8 @@
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+.acquired-payments .heading {background: url("images/acquired.svg") no-repeat 0 50% / 18rem auto;padding-left: 20rem;margin-bottom: 10px;}
+.acquired-payments .button-container {float: right;}

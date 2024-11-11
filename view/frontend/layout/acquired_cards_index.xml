@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="customer_account"/>
+    <body>
+        <referenceContainer name="content">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="acquire-payments-cards-tab" cacheable="false"
+                   after="customer-account-navigation-account-edit-link"
+                   template="Acquired_Payments::my-account/saved-cards.phtml">
+                <arguments>
+                    <argument name="acquired_payments_cards" xsi:type="object">Acquired\Payments\ViewModel\ListCards</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

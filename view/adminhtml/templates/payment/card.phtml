@@ -1,0 +1,40 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+?>
+
+<fieldset class="admin__fieldset payment-method" id="payment_form_<?= $block->escapeHtml($block->getMethodCode()) ?>" >
+    <div id="acquired-payments-card-component"></div>
+    <input type="hidden" id="acquired-txn-id" name="payment[transaction_id]">
+    <input type="hidden" id="acquired-order-id" name="payment[order_id]">
+    <input type="hidden" id="acquired-timestamp" name="payment[timestamp]">
+    <script>
+        require([
+            'Acquired_Payments/js/card',
+            'jquery'
+        ], function(Card, jQuery) {
+            let config = <?= $block->getConfig() ?>;
+            let radioButton = jQuery('#p_method_acquired_card:checked');
+            config.active = radioButton.length > 0 && !radioButton.is(':hidden');
+            new Card(config);
+
+            window.ACQ_GET_SESSION_URL = '<?= /** @noEscape */ $block->getUrl('acquired/session/init') ?>';
+            window.ACQ_UPDATE_SESSION_URL = '<?= /** @noEscape */ $block->getUrl('acquired/session/update')?>';
+            window.ACQ_CONFIRM_PURCHASE_SESSION_URL = '<?= /** @noEscape */ $block->getUrl('acquired/session/confirm')?>';
+        });
+    </script>
+    <style>
+        #acquired-payments-card-component {
+            display: none;
+        }
+        .admin__payment-method-wrapper {
+            width: auto;
+        }
+    </style>
+</fieldset>

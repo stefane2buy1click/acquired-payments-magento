@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+?>
+
+<?php /** @var \Magento\Framework\View\Element\Template $block */ ?>
+
+<?php
+$responseData = $block->getResponseData();
+?>
+
+<?php if ($responseData && isset($responseData['status']) && in_array($responseData['status'], ['success', 'settled', 'executed'])) : ?>
+    <div class="acquired-payment-response">
+        <h1><?php echo __('Payment Successful'); ?></h1>
+        <p><?php echo __('Your payment was successful. Order Id: %1', $block->getOrderId()); ?></p>
+    </div>
+<?php else : ?>
+    <div class="acquired-payment-response">
+        <h1><?php echo __('Payment Failed'); ?></h1>
+        <p><?php echo __('Your payment has for order %1 has failed. Please try again.', $block->getOrderId()); ?></p>
+        <br />
+
+        <div>
+            <p><?php echo __('Retry with same payment options:'); ?></p>
+            <form method="POST" action="/acquired/hosted/retryPayment">
+                <?= $block->getFormBlockHtml(); ?>
+                <input type="hidden" name="nonce" value="<?= $block->getEncryptedNonce(); ?>" />
+                <br />
+                <button class="primary"><?php echo __('Retry payment'); ?></button>
+            </form>
+        </div>
+        <br /><br />
+        <div>
+            <p><?php echo __('Retry checkout with different payment options:'); ?></p>
+            <form method="POST" action="/acquired/hosted/restoreCheckout">
+                <?= $block->getFormBlockHtml(); ?>
+                <input type="hidden" name="nonce" value="<?= $block->getEncryptedNonce(); ?>" />
+                <br />
+                <button class="primary"><?php echo __('Back to checkout'); ?></button>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>

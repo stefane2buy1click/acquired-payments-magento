@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Acquired Limited Payment module (https://acquired.com/)
+ *
+ * Copyright (c) 2024 Acquired.com (https://acquired.com/)
+ * See LICENSE.txt for license details.
+ */
+
+?>
+<?php if ($block->getJsIntegrityHash()) : ?>
+    <script type="text/javascript">
+        window.ACQUIRED_JS_INTEGRITY_HASH = "<?= $block->escapeJs($block->getJsIntegrityHash()); ?>";
+    </script>
+<?php endif; ?>

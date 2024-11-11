@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+-->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route method="POST" url="/V1/acquired/session/:nonce">
+        <service class="Acquired\Payments\Api\SessionInterface" method="get"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route method="POST" url="/V1/acquired/session/update/:nonce/:sessionId">
+        <service class="Acquired\Payments\Api\SessionInterface" method="update"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route method="POST" url="/V1/acquired/create-customer">
+        <service class="Acquired\Payments\Model\Api\CreateAcquiredCustomer" method="execute"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+    <route method="POST" url="/V1/acquired/confirm-params/:nonce">
+        <service class="Acquired\Payments\Model\Api\GetPaymentConfirmParams" method="execute"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route method="POST" url="/V1/acquired/multishipping">
+        <service class="Acquired\Payments\Model\Api\CreateMultiShipping" method="execute"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+</routes>

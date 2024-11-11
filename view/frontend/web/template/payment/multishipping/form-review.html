@@ -1,0 +1,12 @@
+<div data-bind="attr: {class: 'payment-method payment-method-' + getCode()}, css: {'_active': isActive()}">
+    <div class="payment-method-content">
+        <!-- ko foreach: getRegion('messages') -->
+        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
+
+        <form id="form-acquired" class="form" method="post" action="#" >
+            <div id="acquired-payments-card-component"></div>
+        </form>
+
+    </div>
+</div>

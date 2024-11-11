@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="payment_method_assign_data_acquired_card">
+        <observer name="acquired_card_gateway_data_assign" instance="Acquired\Payments\Observer\AcquiredCardDataAssignObserver"/>
+    </event>
+
+    <event name="sales_quote_collect_totals_after">
+        <observer name="acquired_quote_collect_totals_after" instance="Acquired\Payments\Observer\QuoteCollectTotalsAfterObserver"/>
+    </event>
+</config>

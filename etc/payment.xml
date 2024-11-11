@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Acquired.com Payments Integration for Magento2
+ *
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
+ */
+-->
+<payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
+    <groups>
+        <group id="acquired">
+            <label>Acquired Payment Methods</label>
+        </group>
+    </groups>
+    <methods>
+        <method name="acquired_card">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="acquired_pay_by_bank">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+    </methods>
+</payment>
