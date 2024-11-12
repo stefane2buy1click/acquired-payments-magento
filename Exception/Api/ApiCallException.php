@@ -1,13 +1,12 @@
 <?php
 
 /**
+ * Acquired.com Payments Integration for Magento2
  *
- * Acquired Limited Payment module (https://acquired.com/)
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
  *
- * Copyright (c) 2024 Acquired.com (https://acquired.com/)
- * See LICENSE.txt for license details.
- *
- *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
  */
 
 namespace Acquired\Payments\Exception\Api;
