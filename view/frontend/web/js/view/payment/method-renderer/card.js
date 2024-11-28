@@ -1,8 +1,10 @@
 /**
- * Acquired Limited Payment module (https://acquired.com/)
+ * Acquired.com Payments Integration for Magento2
  *
- * Copyright (c) 2024 Acquired.com (https://acquired.com/)
- * See LICENSE.txt for license details.
+ * Copyright (c) 2024 Acquired Limited (https://acquired.com/)
+ *
+ * This file is open source under the MIT license.
+ * Please see LICENSE file for more details.
  */
 define(
     [
@@ -63,6 +65,29 @@ define(
                 }
             },
 
+            initializeSdk: async function (onSuccess) {
+                var self = this;
+
+                // SDK is already initialized
+                if(acquired) {
+                    return Promise.resolve(acquired);
+                }
+
+                return new Promise(function(resolve, reject) {
+                    acquiredLoader.waitForAcquired.then(function () {
+                        // generate nonce with math random and Date.now()
+                        self.updateNonce();
+                        acquired = new Acquired(window.checkoutConfig.payment[self.getCode()].public_key);
+                        resolve(acquired);
+                    }).catch(function (error) {
+                        messageList.addErrorMessage({
+                            message: $t('There was an issue initializing the Acquired payment method.')
+                        });
+                        reject(error);
+                    });
+                });
+            },
+
             /**
              * Initialize acquired lib
              *
@@ -70,19 +95,20 @@ define(
              */
             initialize: function () {
                 this._super();
-                var self = this;
-
-                acquiredLoader.waitForAcquired.then(function () {
-                    // generate nonce with math random and Date.now()
-                    self.nonce = self.generateNonce();
-                    acquired = new Acquired(window.checkoutConfig.payment[self.getCode()].public_key);
-                }).catch(function (error) {
-                    messageList.addErrorMessage({
-                        message: $t('There was an issue initializing the Acquired payment method.')
-                    });
-                });
+                this.initializeSdk();
 
                 return this;
+            },
+
+            updateNonce: function() {
+                this.nonce = this.generateNonce();
+            },
+
+            getNonce: function() {
+                if(!this.nonce) {
+                    this.nonce = this.generateNonce();
+                }
+                return this.nonce;
             },
 
             generateNonce: function () {
@@ -161,8 +187,12 @@ define(
 
                 _this.initializing = true;
 
+
+                // make sure SDK is initialized
+                await this.initializeSdk();
+
                 if (reset) {
-                    this.nonce = this.generateNonce();
+                    this.updateNonce();
                     this.acquiredComponent = null;
                     placeholder.find('iframe').remove();
                 }
@@ -206,7 +236,7 @@ define(
                         // we switched to apple / google pay, switch to new flow
                         self.checkoutType = response.toComponent;
 
-                        if(self.checkoutType == "payment" && !self.confirmParams) {
+                        if(self.isWalletPayment() && !self.confirmParams) {
                             self.getConfirmParams();
                         }
                     }
@@ -268,7 +298,7 @@ define(
                 const sessionIdCookie = this.sessionId;
 
                 if (!sessionIdCookie || createNewSession) {
-                    const acquiredGetSessionUrl = urlBuilder.createUrl('/acquired/session/' + this.nonce, {});
+                    const acquiredGetSessionUrl = urlBuilder.createUrl('/acquired/session/' + this.getNonce(), {});
                     const result = await storage.post(acquiredGetSessionUrl);
                     this.sessionId = result.session_id;
 
@@ -286,7 +316,7 @@ define(
             updateSession: async function () {
                 const sessionId = await this.getSession();
                 const acquiredUpdateSessionUrl = urlBuilder.createUrl(
-                    '/acquired/session/update/' + this.nonce + "/" + sessionId,
+                    '/acquired/session/update/' + this.getNonce() + "/" + sessionId,
                     {}
                 );
 
@@ -301,7 +331,7 @@ define(
             getConfirmParams: async function () {
                 const self = this;
                 self.confirmParams = {};
-                let getConfirmParamsUrl = urlBuilder.createUrl('/acquired/confirm-params/' + this.nonce, {});
+                let getConfirmParamsUrl = urlBuilder.createUrl('/acquired/confirm-params/' + this.getNonce(), {});
                 try {
                     let confirmParams = await storage.post(getConfirmParamsUrl);
                     if (typeof confirmParams !== "undefined" && typeof confirmParams[0] !== "undefined") {
@@ -313,7 +343,7 @@ define(
                     }
                 } catch (error) {
                     self.confirmParams = null;
-                    this.nonce = this.generateNonce();
+                    this.updateNonce();
                     await this.getSession(true);
                     throw new Error($t('There was an issue confirming the payment.'));
                 }
@@ -334,6 +364,14 @@ define(
                 };
             },
 
+            isWalletPayment: function() {
+                return this.checkoutType == "payment";
+            },
+
+            isCardPayment: function() {
+                return this.checkoutType == "cardForm" || this.checkoutType == "oneClick";
+            },
+
             /**
              * Action to place order
              * @param {String} key
@@ -349,7 +387,7 @@ define(
                 this.isPlaceOrderActionAllowed(false);
 
                 // if we are in card form mode, we need to update the session before we can submit the form
-                if(self.checkoutType == "cardForm") {
+                if(self.isCardPayment()) {
                     try {
                         await this.updateSession();
                     } catch (error) {
@@ -416,7 +454,7 @@ define(
             formSubmitListener: async function () {
                 try {
                     // if we are in apple pay / google pay mode we cannot get the confirm params from the server and need to use the ones we have
-                    const confirmParams = this.checkoutType == "cardForm" ? await this.getConfirmParams() : this.confirmParams;
+                    const confirmParams = this.isCardPayment() ? await this.getConfirmParams() : this.confirmParams;
 
                     let response = await acquired.confirmPayment(
                         {
@@ -529,7 +567,7 @@ define(
             resetPlaceOrder: function () {
                 fullScreenLoader.stopLoader();
                 this.isPlaceOrderActionAllowed(true);
-                this.nonce = this.generateNonce();
+                this.updateNonce();
             }
         });
     });
