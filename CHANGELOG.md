@@ -2,6 +2,14 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.0.0] - Release Version
+- Fix race condition breaking payment process
+- Fix order id not being set properly for saved cards
+- Remove beta from version
+
+## [1.0.0-beta.9] - Beta version
+- Update license information in all files to uniform format
+
 ## [1.0.0-beta.8] - Beta version
 - Fix issue where additional validators for placing an order would not get called in some cases
 - Fix issue where checkout agreements validator was not called
