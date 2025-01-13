@@ -186,7 +186,7 @@
                     </field>
                     <field id="style" type="textarea" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="80">
                         <label>Custom Component Styling</label>
-                        <comment><![CDATA[Utilise CSS to style your checkout. See the documentation <a href="https://docs.acquired.com/docs/styling-components" target="_blank">here</a>]]>.</comment>
+                        <comment><![CDATA[Utilise CSS to style your checkout. See the documentation <a href="https://docs.acquired.com/docs/styling-components" target="_blank">here</a>.]]></comment>
                         <config_path>payment/acquired_card/style</config_path>
                     </field>
 
