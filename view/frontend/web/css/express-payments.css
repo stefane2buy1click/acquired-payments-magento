@@ -1,0 +1,35 @@
+.apple-pay-button {
+    width:100%;
+    height:45px;
+    display:inline-block;
+    -webkit-appearance: -apple-pay-button;
+	cursor: pointer;
+}
+
+.apple-pay-button-with-text>* {
+	display: none;
+}
+
+.apple-pay-button-black-with-text {
+	-apple-pay-button-style: black;
+}
+
+.apple-pay-button-white-with-text {
+	-apple-pay-button-style: white;
+}
+
+.apple-pay-button-white-with-line-with-text {
+	-apple-pay-button-style: white-outline;
+}
+
+.apple-pay-button-text-buy {
+	-apple-pay-button-type: buy;
+}
+
+.acquired-payments-hide-button {
+    display: none;
+}
+
+#acquired_payment_applepay_minicart {
+    margin-top:10px;
+}

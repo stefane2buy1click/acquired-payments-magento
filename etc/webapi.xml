@@ -40,4 +40,22 @@
             <resource ref="self"/>
         </resources>
     </route>
+    <route method="POST" url="/V1/acquired/apple-pay/session">
+        <service class="Acquired\Payments\Model\Api\ApplePay" method="startSession"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route method="POST" url="/V1/acquired/apple-pay/shippingmethods">
+        <service class="Acquired\Payments\Model\Api\ApplePay" method="shippingMethods"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route method="POST" url="/V1/acquired/apple-pay/transaction">
+        <service class="Acquired\Payments\Model\Api\ApplePay" method="execute"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

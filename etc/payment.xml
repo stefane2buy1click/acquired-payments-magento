@@ -22,5 +22,8 @@
         <method name="acquired_pay_by_bank">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
+        <method name="acquired_applepay">
+            <allow_multiple_address>0</allow_multiple_address>
+        </method>
     </methods>
 </payment>
