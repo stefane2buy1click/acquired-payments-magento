@@ -13,39 +13,46 @@ declare(strict_types=1);
 
 namespace Acquired\Payments\Observer;
 
-use Psr\Log\LoggerInterface;
+use Acquired\Payments\Api\Data\PaymentIntentInterface;
+use Acquired\Payments\Api\SessionInterface;
+use Acquired\Payments\Model\Payment\IntentFactory as PaymentIntentFactory;
+use Acquired\Payments\Model\ResourceModel\Payment\Intent as PaymentIntentResource;
+use Acquired\Payments\Ui\Method\CardProvider;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Acquired\Payments\Api\SessionInterface;
-use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Framework\App\State;
-use Magento\Backend\Model\Session\Quote as BackendModelSession;
-use Acquired\Payments\Ui\Method\CardProvider;
+use Psr\Log\LoggerInterface;
 
 class QuoteCollectTotalsAfterObserver implements ObserverInterface
 {
-
-    public function __construct(
-        protected SessionInterface $acquiredSession,
-        protected CheckoutSession $checkoutSession,
-        protected BackendModelSession $backendQuoteSession,
-        protected State $state,
-        protected LoggerInterface $logger
-    ) {
-    }
-
     /**
      * Flag to prevent infinite loop
      * @var bool
      */
     private $updatingSessionFlag = false;
 
+    public function __construct(
+        protected SessionInterface $acquiredSession,
+        protected LoggerInterface $logger,
+        protected PaymentIntentFactory $paymentIntentFactory,
+        protected PaymentIntentResource $paymentIntentResource
+    ) {}
+
     public function execute(Observer $observer)
     {
+        if ($this->updatingSessionFlag) {
+            return;
+        }
+
         $quote = $observer->getEvent()->getQuote();
-        $nonce = $this->getCheckoutSession()->getAcquiredSessionNonce();
-        $sessionId = $this->getCheckoutSession()->getAcquiredSessionId();
-        if ($nonce && $sessionId && $quote->getPayment()->getMethod() == CardProvider::CODE && !$this->updatingSessionFlag) {
+
+        /** @var PaymentIntentInterface $paymentIntent */
+        $paymentIntent = $this->paymentIntentFactory->create();
+        $this->paymentIntentResource->load($paymentIntent, $quote->getId(), 'quote_id');
+
+        $nonce = $paymentIntent->getNonce();
+        $sessionId = $paymentIntent->getSessionId();
+
+        if ($nonce && $sessionId && $quote->getPayment()->getMethod() == CardProvider::CODE) {
             $this->updatingSessionFlag = true;
             try {
                 $this->acquiredSession->update($nonce, $sessionId);
@@ -54,10 +61,5 @@ class QuoteCollectTotalsAfterObserver implements ObserverInterface
             }
             $this->updatingSessionFlag = false;
         }
-    }
-
-    protected function getCheckoutSession()
-    {
-        return $this->state->getAreaCode() === 'adminhtml' ? $this->backendQuoteSession : $this->checkoutSession;
     }
 }

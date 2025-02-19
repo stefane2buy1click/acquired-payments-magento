@@ -2,6 +2,11 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.0.2] - Release Version
+- Introduce payment intent table to store payment intents from customers
+- Remove saving nonce and session id values to checkout session
+- Add saving nonce and session id as payment intents to separate database table
+
 ## [1.0.0] - Release Version
 - Fix race condition breaking payment process
 - Fix order id not being set properly for saved cards
