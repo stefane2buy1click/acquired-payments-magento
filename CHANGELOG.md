@@ -2,6 +2,12 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.1.0] - Release Version
+- Add ApplePay Express support for purchases on the minicart
+
+## [1.0.1] - Release Version
+- Adjust system configuration labels and comments for better merchant experience
+
 ## [1.0.0] - Release Version
 - Fix race condition breaking payment process
 - Fix order id not being set properly for saved cards
