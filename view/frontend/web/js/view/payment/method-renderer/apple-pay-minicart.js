@@ -24,6 +24,7 @@ define([
             quoteTotals: null,
             storeCountry: null,
             postalCode: null,
+            countryState: null,
             supportedNetworks: null,
             storeCurrency: null,
             cartId: null,
@@ -181,6 +182,7 @@ define([
             this.session.onshippingcontactselected = async function (event) {
                 this.countryCode = event.shippingContact.countryCode;
                 this.postalCode = event.shippingContact.postalCode;
+                this.countryState = event.shippingContact.administrativeArea;
             
                 try {
                     const response = await fetch(url.build('rest/V1/acquired/apple-pay/shippingmethods'), {
@@ -189,8 +191,9 @@ define([
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            countryCode: event.shippingContact.countryCode,
-                            postalCode: event.shippingContact.postalCode
+                            countryCode: this.countryCode,
+                            postalCode: this.postalCode,
+                            countryState: this.countryState
                         })
                     });
 
@@ -224,7 +227,8 @@ define([
                         body: JSON.stringify({
                             shippingMethod: this.selectedShippingMethod,
                             countryCode: this.countryCode,
-                            postalCode: this.postalCode
+                            postalCode: this.postalCode,
+                            countryState: this.countryState
                         })
                     });
             
@@ -270,7 +274,7 @@ define([
                     }
             
                     if (result[0].error) {
-                        this.handleAjaxError(result.error_message);
+                        this.handleAjaxError(result[0].message);
                         return;
                     }
             

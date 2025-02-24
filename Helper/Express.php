@@ -44,6 +44,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
+use Magento\Directory\Model\RegionFactory;
 use Acquired\Payments\Client\Payment as PaymentClient;
 use Acquired\Payments\Api\Data\ApplePaySessionDataInterface;
 use Acquired\Payments\Model\Api\ApplePaySession;
@@ -82,6 +83,7 @@ class Express
      * @param StoreManagerInterface $storeManager
      * @param ScopeConfigInterface $scopeConfig
      * @param InvoiceSender $invoiceSender
+     * @param RegionFactory $regionFactory
      */
     public function __construct(
         private readonly PaymentClient $paymentClient,
@@ -108,7 +110,8 @@ class Express
         private readonly InvoiceRepositoryInterface $invoiceRepository,
         private readonly StoreManagerInterface $storeManager,
         private readonly ScopeConfigInterface $scopeConfig,
-        private readonly InvoiceSender $invoiceSender
+        private readonly InvoiceSender $invoiceSender,
+        private readonly RegionFactory $regionFactory
     ) {
     }
 
@@ -153,6 +156,13 @@ class Express
         $address->setData(null);
         $address->setCountryId($params['countryCode']);
         $address->setPostcode($params['postalCode']);
+        
+        if (!empty($params['countryState'])) {
+            $regionId = $this->getRegionIdByCode($params['countryCode'], $params['countryState']);
+            if ($regionId) {
+                $address->setRegionId($regionId);
+            }
+        }
 
         if (!empty($params['shippingMethod'])) {
             $shippingMethod = explode('__SPLIT__', $params['shippingMethod']['identifier']);
@@ -169,6 +179,28 @@ class Express
             ]);
 
             $this->shippingInformationManagement->saveAddressInformation($address->getQuoteId(), $shippingInformation);
+        }
+        
+        // Weird bug on older devices ios 15 where onshippingmethodselected was never executed until you actually select the shipping method
+        // so we are forcing the first method here if its not selected already 
+        if (!$address->getShippingMethod()) {
+            $methods = $this->shippingMethodManagement->getList($quote->getId());
+            
+            foreach ($methods as $method) {
+                $address->setCollectShippingRates(true);
+                $address->setShippingMethod($method->getCarrierCode() . $method->getMethodCode());
+    
+                $shippingInformation = $this->shippingInformationFactory->create([
+                    'data' => [
+                        ShippingInformationInterface::SHIPPING_ADDRESS => $address,
+                        ShippingInformationInterface::SHIPPING_CARRIER_CODE => $method->getCarrierCode(),
+                        ShippingInformationInterface::SHIPPING_METHOD_CODE => $method->getMethodCode(),
+                    ],
+                ]);
+    
+                $this->shippingInformationManagement->saveAddressInformation($address->getQuoteId(), $shippingInformation);
+                break;
+            }
         }
 
         $quote->setPaymentMethod('acquired_payments_express');
@@ -406,5 +438,18 @@ class Express
                 }
             }
         }
+    }
+
+     /**
+     * Fetch region ID by country code and region code
+     *
+     * @param string $countryCode
+     * @param string $regionCode
+     * @return int|null
+     */
+    public function getRegionIdByCode($countryCode, $regionCode)
+    {
+        $region = $this->regionFactory->create()->loadByCode($regionCode, $countryCode);
+        return $region->getId() ?: null;
     }
 }
