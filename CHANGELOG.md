@@ -2,6 +2,11 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.0.2] - Release Version
+- Introduce payment intent table to store payment intents from customers
+- Remove saving nonce and session id values to checkout session
+- Add saving nonce and session id as payment intents to separate database table
+
 ## [1.0.1] - Release Version
 - Adjust system configuration labels and comments for better merchant experience
 
