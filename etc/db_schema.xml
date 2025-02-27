@@ -71,4 +71,25 @@
             onDelete="SET NULL"
         />
     </table>
+
+    <table name="acquired_payment_intent" resource="default" engine="innodb" comment="Acquired Payment Intent">
+        <column name="payment_intent_id" xsi:type="int" unsigned="true" nullable="false" identity="true"
+                comment="Payment Intent ID"/>
+        <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" identity="false"
+                default="0" comment="Quote ID"/>
+        <column xsi:type="varchar" name="session_id" nullable="false" length="64" comment="Payment Session ID"/>
+        <column xsi:type="varchar" name="nonce" nullable="true" length="32" comment="Nonce String"/>
+        <column xsi:type="varchar" name="fingerprint" nullable="false" length="64" comment="Fingerprint String"/>
+        <column xsi:type="text" name="fingerprint_data" nullable="true" comment="Fingerprint Data"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"
+                comment="Updated At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="payment_intent_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="ACQUIRED_PAYMENT_INTENT_QUOTE_ID">
+            <column name="quote_id"/>
+        </constraint>
+    </table>
 </schema>

@@ -19,6 +19,7 @@
     <preference for="Acquired\Payments\Api\Data\MultishippingInterface" type="Acquired\Payments\Model\Multishipping"/>
     <preference for="Acquired\Payments\Api\Data\MultishippingSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
     <preference for="Acquired\Payments\Api\Data\MultishippingResultInterface" type="Acquired\Payments\Model\Data\MultishippingResult"/>
+    <preference for="Acquired\Payments\Api\Data\PaymentIntentInterface" type="Acquired\Payments\Model\Payment\Intent"/>
 
     <type name="Acquired\Payments\Model\Api\AcquiredSession">
         <arguments>

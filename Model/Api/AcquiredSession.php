@@ -13,27 +13,40 @@ declare(strict_types=1);
 
 namespace Acquired\Payments\Model\Api;
 
-use Exception;
-use Psr\Log\LoggerInterface;
+use Acquired\Payments\Api\Data\PaymentIntentInterface;
 use Acquired\Payments\Api\Data\SessionDataInterface;
 use Acquired\Payments\Api\SessionInterface;
 use Acquired\Payments\Client\Gateway;
-use Acquired\Payments\Model\Api\Response\SessionIdFactory;
-use Acquired\Payments\Service\PaymentSessionDataInterface;
 use Acquired\Payments\Exception\Api\SessionException;
-use Magento\Checkout\Model\Session as CheckoutSession;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\Quote;
-use Magento\Framework\App\State;
+use Acquired\Payments\Model\Api\Response\SessionIdFactory;
+use Acquired\Payments\Model\Payment\IntentFactory as PaymentIntentFactory;
+use Acquired\Payments\Model\ResourceModel\Payment\Intent as PaymentIntentResource;
+use Acquired\Payments\Service\PaymentSessionDataInterface;
 use Magento\Backend\Model\Session\Quote as BackendModelSession;
+use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\App\State;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
+use Psr\Log\LoggerInterface;
 
 class AcquiredSession implements SessionInterface
 {
-
     /**
      * @param SessionIdFactory $sessionIdFactory
      * @param PaymentSessionDataInterface $getPaymentSessionData
      * @param Gateway $gateway
+     * @param LoggerInterface $logger
+     * @param CheckoutSession $checkoutSession
+     * @param BackendModelSession $backendQuoteSession
+     * @param CartRepositoryInterface $cartRepository
+     * @param State $state
+     * @param PaymentIntentFactory $paymentIntentFactory
+     * @param PaymentIntentResource $paymentIntentResource
+     * @param SerializerInterface $serializer
      */
     public function __construct(
         private readonly Response\SessionIdFactory $sessionIdFactory,
@@ -43,10 +56,16 @@ class AcquiredSession implements SessionInterface
         private readonly CheckoutSession $checkoutSession,
         private readonly BackendModelSession $backendQuoteSession,
         private readonly CartRepositoryInterface $cartRepository,
-        private readonly State $state
-    ) {
-    }
+        private readonly State $state,
+        private readonly PaymentIntentFactory $paymentIntentFactory,
+        private readonly PaymentIntentResource $paymentIntentResource,
+        private readonly SerializerInterface $serializer
+    ) {}
 
+    /**
+     * @return BackendModelSession|CheckoutSession
+     * @throws LocalizedException
+     */
     protected function getCheckoutSession()
     {
         return $this->state->getAreaCode() === 'adminhtml' ? $this->backendQuoteSession : $this->checkoutSession;
@@ -57,6 +76,8 @@ class AcquiredSession implements SessionInterface
      *
      * @param array $paymentData
      * @return string
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     protected function createFingerprint(array $paymentData): string
     {
@@ -76,15 +97,18 @@ class AcquiredSession implements SessionInterface
 
     /**
      * @param array $payload
+     * @param string $nonce
      * @return SessionDataInterface
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      * @throws SessionException
      */
-    protected function createNewSession(array $payload, string $nonce) : SessionDataInterface
+    protected function createNewPaymentIntent(array $payload, string $nonce): SessionDataInterface
     {
-        $acquiredSession = $this->sessionIdFactory->create();
         $quote = $this->getQuote();
+        $paymentIntent = $this->getPaymentIntentByQuote($quote);
 
-        if(!$quote->getReservedOrderId() || $nonce !== $this->getCheckoutSession()->getAcquiredSessionNonce()) {
+        if (!$quote->getReservedOrderId() || $nonce !== $paymentIntent->getNonce()) {
             $quote->setReservedOrderId(null);
             $quote->reserveOrderId();
             $this->cartRepository->save($quote);
@@ -94,12 +118,20 @@ class AcquiredSession implements SessionInterface
             $response = $this->gateway->getComponent()->create(
                 $payload
             );
+            $sessionId = (string) $response['session_id'];
+            $fingerprint = $this->createFingerprint($payload);
 
-            $acquiredSession->setSessionId($response['session_id']);
-            $this->getCheckoutSession()->setAcquiredSessionId($response['session_id']);
-            $this->getCheckoutSession()->setAcquiredSessionFingerPrint($this->createFingerprint($payload));
-            $this->getCheckoutSession()->setAcquiredSessionNonce($nonce);
-        } catch (Exception $e) {
+            $paymentIntent->setQuoteId((int) $quote->getId());
+            $paymentIntent->setSessionId($sessionId);
+            $paymentIntent->setNonce($nonce);
+            $paymentIntent->setFingerprint($fingerprint);
+            $paymentIntent->setFingerprintData($this->serializer->serialize($payload));
+            $this->paymentIntentResource->save($paymentIntent);
+
+            /** @var SessionDataInterface $acquiredSession */
+            $acquiredSession = $this->sessionIdFactory->create();
+            $acquiredSession->setSessionId($sessionId);
+        } catch (\Exception $e) {
             $this->logger->critical(
                 __('Create Acquired session failed: %1', $e->getMessage()),
                 ['exception' => $e]
@@ -107,36 +139,46 @@ class AcquiredSession implements SessionInterface
 
             throw new SessionException(__('Create Acquired session failed!'));
         }
+
         return $acquiredSession;
     }
 
     /**
      * @param string $sessionId
      * @param array $payload
+     * @param string $nonce
      * @return SessionDataInterface
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      * @throws SessionException
      */
-    protected function updateSession(string $sessionId, array $payload, string $nonce) : SessionDataInterface
+    protected function updatePaymentIntent(string $sessionId, array $payload, string $nonce): SessionDataInterface
     {
-        $acquiredSession = $this->sessionIdFactory->create();
         $quote = $this->getQuote();
+        $paymentIntent = $this->getPaymentIntentByQuote($quote);
 
-        if(!$quote->getReservedOrderId() || $nonce !== $this->getCheckoutSession()->getAcquiredSessionNonce()) {
+        if (!$quote->getReservedOrderId() || $nonce !== $paymentIntent->getNonce()) {
             $quote->setReservedOrderId(null);
             $quote->reserveOrderId();
             $this->cartRepository->save($quote);
         }
 
         try {
-            $response = $this->gateway->getComponent()->update(
+            $this->gateway->getComponent()->update(
                 $sessionId,
                 $payload
             );
-            $acquiredSession->setSessionId($response['session_id']);
-            $this->getCheckoutSession()->setAcquiredSessionId($response['session_id']);
-            $this->getCheckoutSession()->setAcquiredSessionFingerPrint($this->createFingerprint($payload));
-            $this->getCheckoutSession()->setAcquiredSessionNonce($nonce);
-        } catch (Exception $e) {
+            $fingerprint = $this->createFingerprint($payload);
+
+            $paymentIntent->setSessionId($sessionId);
+            $paymentIntent->setNonce($nonce);
+            $paymentIntent->setFingerprint($fingerprint);
+            $paymentIntent->setFingerprintData($this->serializer->serialize($payload));
+            $this->paymentIntentResource->save($paymentIntent);
+
+            $acquiredSession = $this->sessionIdFactory->create();
+            $acquiredSession->setSessionId($sessionId);
+        } catch (\Exception $e) {
             $this->logger->critical(
                 __('Update Acquired session failed: %1', $e->getMessage()),
                 ['exception' => $e]
@@ -149,52 +191,63 @@ class AcquiredSession implements SessionInterface
     }
 
     /**
-     * @param string nonce
+     * @param string $nonce
      * @param mixed $customData
      * @return SessionDataInterface
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      * @throws SessionException
      */
     public function get(string $nonce, array $customData = null): SessionDataInterface
     {
-        $customData = $customData ?? [];
-        $orderId = $this->getQuote()->getId() . "_" . $nonce;
-        $paymentData = $this->getPaymentSessionData->execute($orderId, $customData);
+        $quote = $this->getQuote();
 
-        // try to load session ID from PHP session
-        $sessionId = $this->getCheckoutSession()->getAcquiredSessionId();
-        if(!$sessionId) {
-            // if no session ID, create new session
-            return $this->createNewSession($paymentData, $nonce);
-        }
+        $paymentIntent = $this->getPaymentIntentByQuote($quote);
+        $paymentData = $this->getPaymentSessionData->execute(
+            sprintf('%s_%s', $quote->getId(), $nonce),
+            $customData ?? []
+        );
 
-        if ($sessionId && $this->validateFingerprint($paymentData) && $nonce === $this->getCheckoutSession()->getAcquiredSessionNonce()) {
+        if ($paymentIntent->getPaymentIntentId()
+            && $nonce === $paymentIntent->getNonce()
+            && $this->isFingerprintValid($paymentData, $paymentIntent->getFingerprint())
+        ) {
             $acquiredSession = $this->sessionIdFactory->create();
-            $acquiredSession->setSessionId($sessionId);
+            $acquiredSession->setSessionId($paymentIntent->getSessionId());
             return $acquiredSession;
         }
 
-        // if fingerprint or nonce is different, create new session, use the new nonce to generate a new order id
-        return $this->createNewSession($paymentData, $nonce);
+        /**
+         * If there is no payment intent OR fingerprint or nonce are different,
+         *       create new payment intent, use the new nonce to generate a new order id
+         */
+        return $this->createNewPaymentIntent($paymentData, $nonce);
     }
 
     /**
+     * @param string $nonce
      * @param string $sessionId
      * @param mixed $customData
      * @return SessionDataInterface
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      * @throws SessionException
      */
     public function update(string $nonce, string $sessionId, array $customData = null): SessionDataInterface
     {
-        $customData = $customData ?? [];
-        $orderId = $this->getQuote()->getId() . "_" . $nonce;
-        $paymentData = $this->getPaymentSessionData->execute($orderId, $customData);
+        $quote = $this->getQuote();
 
-        // try to load session ID from PHP session and compare fingerprints
-        $sessionId = $this->getCheckoutSession()->getAcquiredSessionId();
+        $paymentIntent = $this->getPaymentIntentByQuote($quote);
+        $paymentData = $this->getPaymentSessionData->execute(
+            sprintf('%s_%s', $quote->getId(), $nonce),
+            $customData ?? []
+        );
+
+        $sessionId = $paymentIntent->getSessionId();
 
         // if fingerprint matches we update the session with new transaction id, nonce doesn't matter
-        if ($sessionId && $this->validateFingerprint($paymentData)) {
-            return $this->updateSession($sessionId, $paymentData, $nonce);
+        if ($sessionId && $this->isFingerPrintValid($paymentData, $paymentIntent->getFingerprint())) {
+            return $this->updatePaymentIntent($sessionId, $paymentData, $nonce);
         }
 
         // otherwise we throw an error as nonce changed or the payload fingerprint is invalid
@@ -205,31 +258,34 @@ class AcquiredSession implements SessionInterface
      * Prepare the session for purchase, consuming the nonce and incrementing the order id
      *
      * @param string $nonce
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      * @throws SessionException
      */
-    public function prepareForPurchase(string $nonce) : void
+    public function prepareForPurchase(string $nonce): void
     {
-        if($nonce !== $this->getCheckoutSession()->getAcquiredSessionNonce()) {
+        $quote = $this->getQuote();
+        $paymentIntent = $this->getPaymentIntentByQuote($quote);
+
+        if ($nonce !== $paymentIntent->getNonce()) {
             throw new SessionException(__('Nonce does not match the current session!'));
         }
 
-        // this nonce is no longer valid
-        $this->getCheckoutSession()->setAcquiredSessionNonce(null);
-
-        $quote = $this->getQuote();
-        if(!$quote->getReservedOrderId()) {
+        if (!$quote->getReservedOrderId()) {
             $quote->setReservedOrderId(null);
             $quote->reserveOrderId();
             $this->cartRepository->save($quote);
         }
-        $paymentData = $this->getPaymentSessionData->execute($quote->getReservedOrderId());
+        $paymentData = $this->getPaymentSessionData->execute(
+            $quote->getReservedOrderId()
+        );
 
         try {
             $this->gateway->getComponent()->update(
-                $this->getCheckoutSession()->getAcquiredSessionId(),
+                $paymentIntent->getSessionId(),
                 $paymentData
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->critical(
                 __('Update Acquired session failed: %1', $e->getMessage()),
                 ['exception' => $e]
@@ -243,8 +299,10 @@ class AcquiredSession implements SessionInterface
      * Get the current quote
      *
      * @return Quote
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    protected function getQuote() : Quote
+    protected function getQuote(): Quote
     {
         return $this->getCheckoutSession()->getQuote();
     }
@@ -253,14 +311,29 @@ class AcquiredSession implements SessionInterface
      * Validate the fingerprint
      *
      * @param array $paymentData
+     * @param string $currentFingerprint
      * @return bool
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
-    protected function validateFingerprint($paymentData) : bool
+    protected function isFingerprintValid(array $paymentData, string $currentFingerprint): bool
     {
         // create fingerprint
         $payloadFingerprint = $this->createFingerprint($paymentData);
-        // compare fingerprint with payment session data
-        $fingerPrintId = $this->getCheckoutSession()->getAcquiredSessionFingerPrint();
-        return $fingerPrintId === $payloadFingerprint;
+        // compare fingerprint with current fingerprint
+        return $currentFingerprint === $payloadFingerprint;
+    }
+
+    /**
+     * @param CartInterface $quote
+     * @return PaymentIntentInterface
+     */
+    protected function getPaymentIntentByQuote(CartInterface $quote): PaymentIntentInterface
+    {
+        /** @var PaymentIntentInterface $paymentIntent */
+        $paymentIntent = $this->paymentIntentFactory->create();
+        $this->paymentIntentResource->load($paymentIntent, $quote->getId(), 'quote_id');
+
+        return $paymentIntent;
     }
 }

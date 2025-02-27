@@ -30,5 +30,21 @@
         "constraint": {
             "PRIMARY": true
         }
+    },
+    "acquired_payment_intent": {
+        "column": {
+            "payment_intent_id": true,
+            "quote_id": true,
+            "session_id": true,
+            "nonce": true,
+            "fingerprint": true,
+            "fingerprint_data": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "ACQUIRED_PAYMENT_INTENT_QUOTE_ID": true
+        }
     }
 }
