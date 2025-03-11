@@ -38,22 +38,21 @@ class ApplePay
         private readonly UrlInterface $url,
         private readonly RequestInterface $request,
         private readonly Express $express
-    ) {
-    }
+    ) {}
 
     /**
      * Creates a Merchant Session for ApplePay
      *
      * @return ApplePaySessionDataInterface
      */
-    public function startSession() : ApplePaySessionDataInterface
+    public function startSession(): ApplePaySessionDataInterface
     {
         $requestBody = $this->request->getContent();
         $params = json_decode($requestBody, true);
 
         $payload = [
             'domain' => parse_url($this->url->getBaseUrl(), PHP_URL_HOST),
-            'display_name' => 'AcquiredTest',
+            'display_name' => $this->express->getStoreName(),
             'validation_url' => empty($params['validationURL'])
                 ? 'https://apple-pay-gateway.apple.com/paymentservices/startSession'
                 : $params['validationURL']
@@ -61,8 +60,8 @@ class ApplePay
 
         $response = $this->merchantSessionClient->applePay($payload);
 
-        if(isset($response['merchant_session'])) {
-            $data = json_decode( base64_decode($response['merchant_session']) , true);
+        if (isset($response['merchant_session'])) {
+            $data = json_decode(base64_decode($response['merchant_session']), true);
             $result = new ApplePaySession($data);
             return $result;
         }
@@ -91,7 +90,7 @@ class ApplePay
     {
         $requestBody = $this->request->getContent();
         $params = json_decode($requestBody, true);
-        
+
         return $this->express->placeOrder($params);
     }
 }

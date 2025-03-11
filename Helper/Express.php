@@ -112,8 +112,7 @@ class Express
         private readonly ScopeConfigInterface $scopeConfig,
         private readonly InvoiceSender $invoiceSender,
         private readonly RegionFactory $regionFactory
-    ) {
-    }
+    ) {}
 
     /**
      * Check if the payment method on specific location is active for the current store
@@ -151,12 +150,12 @@ class Express
     public function setShippingMethods(array $params)
     {
         $quote = $this->getCart();
-        
+
         $address = $quote->getShippingAddress();
         $address->setData(null);
         $address->setCountryId($params['countryCode']);
         $address->setPostcode($params['postalCode']);
-        
+
         if (!empty($params['countryState'])) {
             $regionId = $this->getRegionIdByCode($params['countryCode'], $params['countryState']);
             if ($regionId) {
@@ -180,16 +179,16 @@ class Express
 
             $this->shippingInformationManagement->saveAddressInformation($address->getQuoteId(), $shippingInformation);
         }
-        
+
         // Weird bug on older devices ios 15 where onshippingmethodselected was never executed until you actually select the shipping method
-        // so we are forcing the first method here if its not selected already 
+        // so we are forcing the first method here if its not selected already
         if (!$address->getShippingMethod()) {
             $methods = $this->shippingMethodManagement->getList($quote->getId());
-            
+
             foreach ($methods as $method) {
                 $address->setCollectShippingRates(true);
                 $address->setShippingMethod($method->getCarrierCode() . $method->getMethodCode());
-    
+
                 $shippingInformation = $this->shippingInformationFactory->create([
                     'data' => [
                         ShippingInformationInterface::SHIPPING_ADDRESS => $address,
@@ -197,7 +196,7 @@ class Express
                         ShippingInformationInterface::SHIPPING_METHOD_CODE => $method->getMethodCode(),
                     ],
                 ]);
-    
+
                 $this->shippingInformationManagement->saveAddressInformation($address->getQuoteId(), $shippingInformation);
                 break;
             }
@@ -209,7 +208,7 @@ class Express
         $quote->collectTotals();
 
         $methods = $this->shippingMethodManagement->getList($quote->getId());
-        
+
         $data = [
             'shipping_methods' => !empty($methods) ? array_map(function ($method) {
                 return [
@@ -219,7 +218,7 @@ class Express
                     'detail' => '',
                 ];
             }, $methods) : [],
-        
+
             'totals' => !empty($quote->getTotals()) ? array_map(function (AddressTotal $total) {
                 return [
                     'type' => 'final',
@@ -229,7 +228,7 @@ class Express
                 ];
             }, array_values($quote->getTotals())) : []
         ];
-        
+
         return [$data];
     }
 
@@ -254,12 +253,12 @@ class Express
 
         if (!$this->customerSession->isLoggedIn()) {
             $quote->setCheckoutMethod(\Magento\Checkout\Model\Type\Onepage::METHOD_GUEST)
-                  ->setCustomerId(null)
-                  ->setCustomerEmail($params['shippingAddress']['emailAddress'])
-                  ->setCustomerFirstname($params['billingAddress']['familyName'])
-                  ->setCustomerLastname($params['billingAddress']['givenName'])
-                  ->setCustomerIsGuest(true)
-                  ->setCustomerGroupId(\Magento\Customer\Api\Data\GroupInterface::NOT_LOGGED_IN_ID);
+                ->setCustomerId(null)
+                ->setCustomerEmail($params['shippingAddress']['emailAddress'])
+                ->setCustomerFirstname($params['billingAddress']['familyName'])
+                ->setCustomerLastname($params['billingAddress']['givenName'])
+                ->setCustomerIsGuest(true)
+                ->setCustomerGroupId(\Magento\Customer\Api\Data\GroupInterface::NOT_LOGGED_IN_ID);
         } else {
             $quote->setCheckoutMethod(\Magento\Checkout\Model\Type\Onepage::METHOD_CUSTOMER);
             $quote->setCustomerId($this->customerSession->getCustomerId());
@@ -283,7 +282,7 @@ class Express
 
         if ($this->customerSession->isLoggedIn()) {
             $acquiredCustomer = $this->createAcquiredCustomer->execute($this->customerSession->getCustomerId());
-            if($acquiredCustomer) {
+            if ($acquiredCustomer) {
                 $payload['customer']['customer_id'] = $acquiredCustomer['customer_id'];
             }
         }
@@ -334,7 +333,7 @@ class Express
         $order = $this->quoteManagement->submit($quote);
 
         if ($order) {
-            
+
             $this->eventManager->dispatch(
                 'checkout_type_onepage_save_order_after',
                 [
@@ -366,7 +365,7 @@ class Express
                 $invoice->setTransactionId($transactionId);
                 $order->getPayment()->setLastTransId($transactionId);
                 $order->getPayment()->setAdditionalInformation('transaction_id', $transactionId)
-                                    ->setAdditionalInformation('payment_location', 'mini-basket');
+                    ->setAdditionalInformation('payment_location', 'mini-basket');
 
                 $invoice->register();
                 $invoice->pay();
@@ -401,7 +400,7 @@ class Express
 
     /**
      * Update the address details for a given address object
-     * 
+     *
      * @param AddressInterface $address
      * @param array $input
      * @param string $telephone
@@ -440,7 +439,7 @@ class Express
         }
     }
 
-     /**
+    /**
      * Fetch region ID by country code and region code
      *
      * @param string $countryCode
@@ -451,5 +450,16 @@ class Express
     {
         $region = $this->regionFactory->create()->loadByCode($regionCode, $countryCode);
         return $region->getId() ?: null;
+    }
+
+    /**
+     * Get the current store name without spaces
+     *
+     * @return string
+     */
+    public function getStoreName()
+    {
+        $storeName = $this->storeManager->getStore()->getName();
+        return str_replace(' ', '', $storeName);
     }
 }
