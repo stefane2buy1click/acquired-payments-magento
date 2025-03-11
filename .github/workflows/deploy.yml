@@ -45,11 +45,11 @@ jobs:
       - name: Create Deploy Destination
         id: create_deploy_dest
         run: |
-          temp_deploy_dest=$(ssh magento 'mktemp -d -t deploy-XXXXXX')
+          temp_deploy_dest="tmp/deploy-${{ github.run_id }}-${{ github.run_attempt }}"
           echo "TEMP_DEPLOY_DEST=$temp_deploy_dest" >> $GITHUB_ENV
 
       - name: Copy Files
-        run: scp -r ./* magento:${{ env.TEMP_DEPLOY_DEST }}
+        run: scp -r ./* magento:~/${{ env.TEMP_DEPLOY_DEST }}
 
       - name: Enable Maintenance Mode
         run: ssh magento 'cd public_html && bin/magento maintenance:enable'
@@ -60,9 +60,9 @@ jobs:
           cd public_html
           mkdir -p app/code/Acquired/Payments
           rm -rf app/code/Acquired/Payments/*
-          rm -rf ${{ env.TEMP_DEPLOY_DEST }}/.github
-          cp -rf ${{ env.TEMP_DEPLOY_DEST }}/* app/code/Acquired/Payments/
-          rm -rf ${{ env.TEMP_DEPLOY_DEST }}
+          rm -rf ~/${{ env.TEMP_DEPLOY_DEST }}/.github
+          cp -rf ~/${{ env.TEMP_DEPLOY_DEST }}/* app/code/Acquired/Payments/
+          rm -rf ~/${{ env.TEMP_DEPLOY_DEST }}
           EOF
 
       - name: Upgrade Magento
