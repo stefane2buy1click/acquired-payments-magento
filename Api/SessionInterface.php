@@ -14,13 +14,14 @@ declare(strict_types=1);
 namespace Acquired\Payments\Api;
 
 use Acquired\Payments\Api\Data\SessionDataInterface;
+use Acquired\Payments\Exception\Api\SessionException;
 
 interface SessionInterface
 {
     /**
      * Create a checkout session with acquired
      *
-     * @param string nonce
+     * @param string $nonce
      * @param mixed $customData
      * @return SessionDataInterface
      */
@@ -29,7 +30,7 @@ interface SessionInterface
     /**
      * Update checkout session data
      *
-     * @param string nonce
+     * @param string $nonce
      * @param string $sessionId
      * @param mixed $customData
      * @return SessionDataInterface
@@ -45,6 +46,4 @@ interface SessionInterface
      * @return void
      */
     public function prepareForPurchase(string $nonce) : void;
-
-
 }

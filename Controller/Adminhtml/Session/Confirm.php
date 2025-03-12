@@ -25,19 +25,19 @@ use Acquired\Payments\Api\SessionInterface;
 class Confirm extends Action implements CsrfAwareActionInterface, HttpPostActionInterface
 {
     /**
-     * @var \Magento\Framework\Controller\Result\JsonFactory
+     * @var JsonFactory
      */
     protected $resultJsonFactory;
 
     /**
-     * @var \Acquired\Payments\Api\SessionInterface
+     * @var SessionInterface
      */
     protected $acquiredSession;
 
     /**
      * @param Context $context
      * @param JsonFactory $resultJsonFactory
-     * @param acquiredSession $acquiredSession
+     * @param SessionInterface $acquiredSession
      */
     public function __construct(
         Context $context,

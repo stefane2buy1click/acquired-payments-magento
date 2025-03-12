@@ -15,7 +15,6 @@ namespace Acquired\Payments\Block\Adminhtml\Order\Payment;
 
 use Exception;
 use Psr\Log\LoggerInterface;
-use Acquired\Payments\Api\SessionInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Payment\Block\Form\Cc;
@@ -32,7 +31,6 @@ class Form extends Cc
      * @param Context $context
      * @param Config $paymentConfig
      * @param SerializerInterface $serializer
-     * @param SessionInterface $acquiredSession
      * @param Basic $basicConf
      * @param CardConfig $cardConf
      * @param LoggerInterface $logger
@@ -42,7 +40,6 @@ class Form extends Cc
         Context $context,
         Config $paymentConfig,
         private readonly SerializerInterface $serializer,
-        private readonly SessionInterface $acquiredSession,
         private readonly Basic $basicConf,
         private readonly CardConfig $cardConf,
         private readonly LoggerInterface $logger,
