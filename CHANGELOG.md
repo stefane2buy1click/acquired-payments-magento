@@ -2,6 +2,8 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.1.0] - Release Version
+- Add ApplePay Express support for purchases on the minicart
 ## [1.0.2] - Release Version
 - Introduce payment intent table to store payment intents from customers
 - Remove saving nonce and session id values to checkout session

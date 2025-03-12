@@ -17,4 +17,8 @@
     <event name="checkout_type_multishipping_create_orders_single">
         <observer name="acquired_multishipping_create_orders_single" instance="Acquired\Payments\Observer\Multishipping\CreateOrdersSingleObserver"/>
     </event>
+
+    <event name="shortcut_buttons_container">
+        <observer name="acquired_add_apple_pay_minicart" instance="Acquired\Payments\Observer\AddApplePayShortcutMiniCart"/>
+    </event>
 </config>
