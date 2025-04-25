@@ -29,6 +29,7 @@ class CardRefundBuilderTest extends AbstractBuilderTestCase
     {
         $this->loggerMock = $this->createMock(LoggerInterface::class);
         $this->priceCurrencyMock = $this->createMock(PriceCurrencyInterface::class);
+
         $this->cardRefundBuilder = new CardRefundBuilder(
             $this->loggerMock,
             $this->priceCurrencyMock
