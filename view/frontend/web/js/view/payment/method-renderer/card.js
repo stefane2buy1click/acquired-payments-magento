@@ -60,6 +60,7 @@ define(
                 orderId: '',
                 transactionId: '',
                 timestamp: '',
+                hash: '',
                 imports: {
                     onActiveChange: 'active'
                 }
@@ -134,7 +135,8 @@ define(
                         'active',
                         'orderId',
                         'transactionId',
-                        'timestamp'
+                        'timestamp',
+                        'hash',
                     ]);
 
                 return this;
@@ -359,7 +361,8 @@ define(
                     'additional_data': {
                         'transaction_id': this.transactionId(),
                         'order_id': this.orderId(),
-                        'timestamp': this.timestamp()
+                        'timestamp': this.timestamp(),
+                        'hash': this.hash(),
                     }
                 };
             },
@@ -490,6 +493,7 @@ define(
                         this.orderId(response.data.order_id);
                         this.transactionId(response.data.transaction_id);
                         this.timestamp(response.data.timestamp);
+                        this.hash(response.data.hash);
                     }
                 } catch (error) {
                     throw new Error(error.message || $t('There was an issue submitting your payment.'));
@@ -506,12 +510,19 @@ define(
                 return new Promise((resolve, reject) => {
                     this.openTdsIframe(redirectUrl);
                     const messageHandler = (event) => {
+
+                        // Check if the message is from the same origin as 3DS response will always originate from the same domain
+                        if(event.origin !== window.location.origin) {
+                            return;
+                        }
+
                         if (event.data && event.data.type === 'TdsResponse') {
                             if (event.data.status === 'success') {
                                 let responseData = event.data.data;
                                 this.orderId(responseData.order_id);
                                 this.transactionId(responseData.transaction_id);
                                 this.timestamp(responseData.timestamp);
+                                this.hash(responseData.hash);
 
                                 this.closeTdsIframe();
                                 resolve();
