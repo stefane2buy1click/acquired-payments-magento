@@ -25,10 +25,13 @@ class AcquiredCardDataAssignObserver extends AbstractDataAssignObserver
 
     public const TIMESTAMP = 'timestamp';
 
+    public const HASH = 'hash';
+
     private const VALID_KEYS = [
         self::TRANSACTION_ID,
         self::ORDER_ID,
-        self::TIMESTAMP
+        self::TIMESTAMP,
+        self::HASH
     ];
 
     /**

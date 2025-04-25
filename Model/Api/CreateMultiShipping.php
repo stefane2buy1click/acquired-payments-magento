@@ -74,6 +74,15 @@ class CreateMultiShipping
                 }
 
                 $this->checkoutSession->setMultishippingTransactionId($body['transactionId']);
+                $quotePayment->setAdditionalInformation([
+                    'transaction_id' => $body['transactionId'],
+                    'session_id' => $body['sessionId'],
+                    'order_id' => $body['orderId'],
+                    'timestamp' => $body['timestamp'],
+                    'hash' => isset($body['hash']) ? $body['hash'] : null,
+                    'multishipping' => true
+                ]);
+                $quotePayment->save();
 
                 return true;
             } else {
@@ -83,6 +92,15 @@ class CreateMultiShipping
                 if($quotePayment->getMethod() == PayByBankProvider::CODE) {
                     // transaction id is unknown at this point as payment will be processed after order creation
                     $reservedIds = $this->multishippingService->reserveOrderIds($quote, null, 'ACQM-' . $quote->getId());
+                    $quotePayment->setAdditionalInformation([
+                        'transaction_id' => $body['transactionId'],
+                        'session_id' => $body['sessionId'],
+                        'order_id' => $body['orderId'],
+                        'timestamp' => $body['timestamp'],
+                        'hash' => isset($body['hash']) ? $body['hash'] : null,
+                        'multishipping' => true
+                    ]);
+                    $quotePayment->save();
                 }
                 return true;
             }
