@@ -263,6 +263,26 @@ class MultishippingService
     }
 
     /**
+     * In case a creation of a previous multishipping order failed, we need to clear the multishipping data so new session can be initialized
+     *
+     * @param Quote $quote
+     * @return void
+     */
+    public function clearMultishippingData(Quote $quote) {
+        $shippingAddresses = $quote->getAllShippingAddresses();
+        if ($quote->hasVirtualItems()) {
+            $shippingAddresses[] = $quote->getBillingAddress();
+        }
+
+        foreach ($shippingAddresses as $address) {
+            $multishipping = $this->getMultishippingByAddressId((int) $address->getId());
+            if($multishipping) {
+                $this->multishippingRepository->delete($multishipping);
+            }
+        }
+    }
+
+    /**
      * Process multishipping orders by candidate order increment ids and returns a data object with needed information
      * @param array $candidateOrderIds
      * @return MultishippingResultInterface
