@@ -101,6 +101,8 @@ define([
                     sessionId: self.sessionId,
                     transactionId: self.transactionId(),
                     orderId: self.orderId(),
+                    timestamp: self.timestamp(),
+                    hash: self.hash(),
                 }),
                 dataType: 'json',
                 global: true,
@@ -121,7 +123,8 @@ define([
                     'active',
                     'orderId',
                     'transactionId',
-                    'timestamp'
+                    'timestamp',
+                    'hash'
                 ]);
 
             return this;
