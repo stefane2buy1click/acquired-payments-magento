@@ -31,7 +31,20 @@ abstract class AbstractBuilderTestCase extends TestCase {
 
         $paymentMock = $this->createMock(Payment::class);
         $paymentMock->method('getOrder')->willReturn($orderMock);
-        $paymentMock->method('getAdditionalInformation')->with('transaction_id')->willReturn($transactionId);
+        $paymentMock->method('getAdditionalInformation')->willReturnCallback(function ($key) use ($transactionId, $incrementId) {
+            $data = [
+                "transaction_id" => $transactionId,
+                "order_id" => $incrementId,
+                "timestamp" => null,
+                "hash" => null
+            ];
+
+            if(empty($key)) {
+                return $data;
+            }
+
+            return isset($data[$key]) ? $data[$key] : null;
+        });
         $paymentMock->method('getLastTransId')->willReturn($transactionId);
 
         return $paymentMock;

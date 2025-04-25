@@ -18,6 +18,7 @@ use Acquired\Payments\Gateway\Config\Card\Config as CardConfig;
 use Psr\Log\LoggerInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Acquired\Payments\Service\MultishippingService;
+use Acquired\Payments\Gateway\Validator\RequestBuilderValidator;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order;
@@ -31,6 +32,7 @@ class CardCaptureBuilderTest extends AbstractBuilderTestCase
     private $loggerMock;
     private $checkoutSessionMock;
     private $multishippingServiceMock;
+    private $requestBuilderValidatorMock;
     private $paymentDOInterfaceMock;
     private $paymentMock;
     private $orderMock;
@@ -41,6 +43,7 @@ class CardCaptureBuilderTest extends AbstractBuilderTestCase
         $this->loggerMock = $this->createMock(LoggerInterface::class);
         $this->checkoutSessionMock = $this->createMock(CheckoutSession::class);
         $this->multishippingServiceMock = $this->createMock(MultishippingService::class);
+        $this->requestBuilderValidatorMock = $this->createMock(RequestBuilderValidator::class);
         $this->paymentDOInterfaceMock = $this->createMock(PaymentDataObjectInterface::class);
         $this->orderMock = $this->createMock(Order::class);
 
@@ -49,7 +52,8 @@ class CardCaptureBuilderTest extends AbstractBuilderTestCase
             $this->cardConfigMock,
             $this->loggerMock,
             $this->checkoutSessionMock,
-            $this->multishippingServiceMock
+            $this->multishippingServiceMock,
+            $this->requestBuilderValidatorMock
         );
     }
 

@@ -18,18 +18,21 @@ use Acquired\Payments\Gateway\Config\Basic;
 use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\TestCase;
 use Magento\Framework\Phrase;
+use Acquired\Payments\Gateway\Validator\TransactionDataIntegrityValidator;
 
 class TdsResponseHandlerTest extends TestCase
 {
     private $basicConfigMock;
     private $loggerMock;
+    private $transactionDataIntegrityValidatorMock;
     private $tdsResponseHandler;
 
     protected function setUp(): void
     {
         $this->basicConfigMock = $this->createMock(Basic::class);
         $this->loggerMock = $this->createMock(LoggerInterface::class);
-        $this->tdsResponseHandler = new TdsResponseHandler($this->basicConfigMock, $this->loggerMock);
+        $this->transactionDataIntegrityValidatorMock = $this->createMock(TransactionDataIntegrityValidator::class);
+        $this->tdsResponseHandler = new TdsResponseHandler($this->basicConfigMock, $this->transactionDataIntegrityValidatorMock, $this->loggerMock);
 
         // Configure the basicConfigMock to return a predefined API secret for hash generation
         $this->basicConfigMock->method('getApiSecret')->willReturn('secret');
@@ -44,6 +47,11 @@ class TdsResponseHandlerTest extends TestCase
             'timestamp' => '789',
             'hash' => hash('sha256', hash('sha256', 'success123456789') . 'secret')
         ];
+
+        $this->transactionDataIntegrityValidatorMock
+            ->method('validateIntegrity')
+            ->with($postData)
+            ->willReturn(true);
 
         $response = $this->tdsResponseHandler->processResponse($postData);
 
@@ -62,6 +70,11 @@ class TdsResponseHandlerTest extends TestCase
             'hash' => 'invalid_hash'
         ];
 
+        $this->transactionDataIntegrityValidatorMock
+            ->method('validateIntegrity')
+            ->with($postData)
+            ->willThrowException(new \Exception('Invalid 3-D Secure data integrity!'));
+
         $response = $this->tdsResponseHandler->processResponse($postData);
 
         $this->assertEquals('TdsResponse', $response['type']);
@@ -76,6 +89,10 @@ class TdsResponseHandlerTest extends TestCase
         $this->loggerMock->expects($this->once())
             ->method('critical')
             ->with($this->isInstanceOf(Phrase::class), $this->arrayHasKey('exception'));
+
+        $this->transactionDataIntegrityValidatorMock
+            ->method('validateIntegrity')
+            ->willThrowException(new \Exception('An error occurred while processing the 3-D Secure response.'));
 
         $response = $this->tdsResponseHandler->processResponse($postData);
 

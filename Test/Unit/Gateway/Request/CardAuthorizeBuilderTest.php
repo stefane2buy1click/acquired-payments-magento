@@ -19,12 +19,14 @@ use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order;
 use Acquired\Payments\Exception\Command\BuilderException;
 use Acquired\Payments\Test\Unit\Gateway\Request\AbstractBuilderTestCase;
+use Acquired\Payments\Gateway\Validator\RequestBuilderValidator;
 
 class CardAuthorizeBuilderTest extends AbstractBuilderTestCase
 {
     private $loggerMock;
     private $checkoutSessionMock;
     private $multishippingServiceMock;
+    private $requestBuilderValidatorMock;
     private $cardAuthorizeBuilder;
 
     protected function setUp(): void
@@ -32,11 +34,13 @@ class CardAuthorizeBuilderTest extends AbstractBuilderTestCase
         $this->loggerMock = $this->createMock(LoggerInterface::class);
         $this->checkoutSessionMock = $this->createMock(CheckoutSession::class);
         $this->multishippingServiceMock = $this->createMock(MultishippingService::class);
+        $this->requestBuilderValidatorMock = $this->createMock(RequestBuilderValidator::class);
 
         $this->cardAuthorizeBuilder = new CardAuthorizeBuilder(
             $this->loggerMock,
             $this->checkoutSessionMock,
-            $this->multishippingServiceMock
+            $this->multishippingServiceMock,
+            $this->requestBuilderValidatorMock
         );
     }
 
