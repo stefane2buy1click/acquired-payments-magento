@@ -21,6 +21,7 @@ use Magento\Payment\Gateway\Helper\SubjectReader;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Acquired\Payments\Service\MultishippingService;
+use Acquired\Payments\Gateway\Validator\RequestBuilderValidator;
 
 class CardCaptureBuilder implements BuilderInterface
 {
@@ -34,7 +35,8 @@ class CardCaptureBuilder implements BuilderInterface
         private readonly CardConfig $cardConfig,
         private readonly LoggerInterface $logger,
         private readonly CheckoutSession $checkoutSession,
-        private readonly MultishippingService $multishippingService
+        private readonly MultishippingService $multishippingService,
+        private readonly RequestBuilderValidator $requestBuilderValidator
     ) {
     }
 
@@ -49,12 +51,19 @@ class CardCaptureBuilder implements BuilderInterface
             $payment = SubjectReader::readPayment($buildSubject)->getPayment();
             $order = $payment instanceof \Magento\Sales\Model\Order\Payment ? $payment->getOrder() : SubjectReader::readPayment($buildSubject)->getOrder();
 
-            if (empty($payment->getAdditionalInformation('transaction_id')) && !$order->getMultishippingAcquiredTransactionId()) {
+            $paymentTransactionId = $payment->getAdditionalInformation('transaction_id');
+            if (empty($paymentTransactionId) && !$order->getMultishippingAcquiredTransactionId()) {
                 throw new BuilderException(__('Missing transaction_id'));
             }
 
+            $transactionId = ($order->getMultishippingAcquiredTransactionId()) ?: $paymentTransactionId;
+            if(!$paymentTransactionId) {
+                $payment->setAdditionalInformation('transaction_id', $transactionId);
+            }
+            $this->requestBuilderValidator->validate($payment->getAdditionalInformation());
+
             return [
-                'transaction_id' => ($order->getMultishippingAcquiredTransactionId()) ?: $payment->getAdditionalInformation('transaction_id'),
+                'transaction_id' => $transactionId,
                 'amount' => ['amount' => SubjectReader::readAmount($buildSubject)],
                 'is_captured' => $this->cardConfig->getCaptureAction()
             ];
