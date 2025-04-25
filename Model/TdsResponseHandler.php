@@ -14,6 +14,7 @@ namespace Acquired\Payments\Model;
 use Acquired\Payments\Exception\Response\TdsResponseException;
 use Exception;
 use Psr\Log\LoggerInterface;
+use Acquired\Payments\Gateway\Validator\TransactionDataIntegrityValidator;
 use Acquired\Payments\Gateway\Config\Basic;
 
 /**
@@ -25,15 +26,16 @@ use Acquired\Payments\Gateway\Config\Basic;
 class TdsResponseHandler
 {
 
-    private const ALGORITHM_KEY = 'sha256';
     private const STATUS_ERROR = 'error';
     private const STATUS_SUCCESS = 'success';
     private const RESPONSE_TYPE = 'TdsResponse';
+
     private const STATUS_KEY = 'status';
     private const TRANSACTION_ID_KEY = 'transaction_id';
     private const ORDER_ID_KEY = 'order_id';
     private const TIMESTAMP_KEY = 'timestamp';
     private const HASH_KEY = 'hash';
+
     private const REASON_KEY = 'reason';
 
 
@@ -43,6 +45,7 @@ class TdsResponseHandler
      */
     public function __construct(
         private readonly Basic $basicConfig,
+        private readonly TransactionDataIntegrityValidator $transactionDataIntegrityValidator,
         private readonly LoggerInterface $logger
     ) {
     }
@@ -84,21 +87,29 @@ class TdsResponseHandler
      */
     private function validateResponseIntegrity(array $postData): bool
     {
-        if(!isset($postData[self::STATUS_KEY], $postData[self::TRANSACTION_ID_KEY], $postData[self::ORDER_ID_KEY], $postData[self::TIMESTAMP_KEY], $postData[self::HASH_KEY])) {
-            throw new TdsResponseException(__('Invalid 3-D Secure response data'));
-        }
-
-        $concatenatedParams = implode('', [
+        if(!isset(
             $postData[self::STATUS_KEY],
             $postData[self::TRANSACTION_ID_KEY],
             $postData[self::ORDER_ID_KEY],
-            $postData[self::TIMESTAMP_KEY]
-        ]);
+            $postData[self::TIMESTAMP_KEY],
+            $postData[self::HASH_KEY])) {
+            throw new TdsResponseException(__('Invalid 3-D Secure response data'));
+        }
 
-        $paramsHash = hash(self::ALGORITHM_KEY, $concatenatedParams);
-        $generatedHash = hash(self::ALGORITHM_KEY, $paramsHash . $this->basicConfig->getApiSecret());
+        try {
+            $this->transactionDataIntegrityValidator->validateIntegrity([
+                TransactionDataIntegrityValidator::STATUS_KEY => $postData[self::STATUS_KEY],
+                TransactionDataIntegrityValidator::TRANSACTION_ID_KEY => $postData[self::TRANSACTION_ID_KEY],
+                TransactionDataIntegrityValidator::ORDER_ID_KEY => $postData[self::ORDER_ID_KEY],
+                TransactionDataIntegrityValidator::TIMESTAMP_KEY => $postData[self::TIMESTAMP_KEY],
+                TransactionDataIntegrityValidator::HASH_KEY => $postData[self::HASH_KEY]
+            ]);
+        } catch (Exception $e) {
+            $this->logger->critical(__('Error validating 3DS response: %1', $e->getMessage()), ['exception' => $e]);
+            return false;
+        }
 
-        return $generatedHash === $postData[self::HASH_KEY];
+        return true;
     }
 
 
