@@ -67,7 +67,12 @@ class RequestBuilderValidator extends AbstractValidator
             throw new BuilderException(__('Order ID does not match.'));
         }
 
-        if($this->cardConfig->isTdsActive() && empty($paymentAdditionalData['multishipping'])) {
+        // in case of apple pay, the hash will not be in the response so we skip the validation
+        $shouldValidateHash = $this->cardConfig->isTdsActive() &&
+            empty($paymentAdditionalData['multishipping']) &&
+            !in_array($transaction[TransactionResponseInterface::PAYMENT_METHOD], ['apple_pay']);
+
+        if($shouldValidateHash) {
             if(empty($paymentAdditionalData['hash'])) {
                 throw new BuilderException(__('Hash is required for 3DS secure transactions.'));
             }
