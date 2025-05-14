@@ -22,6 +22,7 @@ use Acquired\Payments\Model\Api\Response\SessionIdFactory;
 use Acquired\Payments\Model\Payment\IntentFactory as PaymentIntentFactory;
 use Acquired\Payments\Model\ResourceModel\Payment\Intent as PaymentIntentResource;
 use Acquired\Payments\Service\PaymentSessionDataInterface;
+use Acquired\Payments\Service\MultishippingService;
 use Magento\Backend\Model\Session\Quote as BackendModelSession;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\App\State;
@@ -59,7 +60,8 @@ class AcquiredSession implements SessionInterface
         private readonly State $state,
         private readonly PaymentIntentFactory $paymentIntentFactory,
         private readonly PaymentIntentResource $paymentIntentResource,
-        private readonly SerializerInterface $serializer
+        private readonly SerializerInterface $serializer,
+        private readonly MultishippingService $multishippingService
     ) {}
 
     /**
@@ -136,6 +138,9 @@ class AcquiredSession implements SessionInterface
                 __('Create Acquired session failed: %1', $e->getMessage()),
                 ['exception' => $e]
             );
+
+            $this->paymentIntentResource->delete($paymentIntent);
+            $this->multishippingService->clearMultishippingData($quote);
 
             throw new SessionException(__('Create Acquired session failed!'));
         }

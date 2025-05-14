@@ -2,6 +2,11 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.0.3] - Release Version
+- Improve security by eliminating an attack vector
+- Improve code quality
+- Fix a bug when placing a multishipping order
+
 ## [1.0.2] - Release Version
 - Introduce payment intent table to store payment intents from customers
 - Remove saving nonce and session id values to checkout session
