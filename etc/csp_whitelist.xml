@@ -14,11 +14,13 @@
         <policy id="script-src">
             <values>
                 <value id="cdn-acquired" type="host">https://cdn.acquired.com</value>
+                <value id="cdn-apple" type="host">https://applepay.cdn-apple.com</value>
             </values>
         </policy>
         <policy id="connect-src">
             <values>
                 <value id="cdn-acquired" type="host">https://cdn.acquired.com</value>
+                <value id="cdn-apple" type="host">https://applepay.cdn-apple.com</value>
             </values>
         </policy>
     </policies>

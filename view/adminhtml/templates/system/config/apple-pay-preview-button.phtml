@@ -1,0 +1,49 @@
+<?php
+$black = $block->getViewFileUrl('Acquired_Payments::images/apple-pay-black.png');
+$whiteOutline = $block->getViewFileUrl('Acquired_Payments::images/apple-pay-white.png');
+$white = $block->getViewFileUrl('Acquired_Payments::images/apple-pay-white-no-border.png');
+?>
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function () {
+    function createImageElement(imageUrl) {
+        const imgElement = document.createElement('img');
+        imgElement.src = imageUrl;
+        imgElement.style['width'] = '195px';
+
+        return imgElement;
+    }
+    
+    function updatePreviewImage(value) {
+        let imageUrl;
+        switch (value) {
+            case 'black':
+                imageUrl = '<?= $black ?>';
+                break;
+            case 'white':
+                imageUrl = '<?= $white ?>';
+                break;
+            default:
+                imageUrl = '<?= $whiteOutline ?>';
+        }
+
+        const previewDiv = document.getElementById('apple-pay-preview');
+        if (previewDiv) {
+            previewDiv.innerHTML = '';
+            const previewImage = createImageElement(imageUrl);
+            previewDiv.appendChild(previewImage);
+        }
+    }
+
+    const applePayButtonStyle = document.querySelector('select[name="groups[acquired][groups][acquired_express_payments][groups][acquired_express_applepay][fields][applepaybuttonstyle][value]"]');
+
+    if (applePayButtonStyle) {
+        updatePreviewImage(applePayButtonStyle.value);
+
+        applePayButtonStyle.addEventListener('change', function () {
+            updatePreviewImage(applePayButtonStyle.value);
+        });
+    }
+});
+</script>
+
+<div id="apple-pay-preview"></div>

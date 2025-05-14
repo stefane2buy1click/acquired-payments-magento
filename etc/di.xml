@@ -67,6 +67,16 @@
             <argument name="commandPool" xsi:type="object">AcquiredHostedCommandPool</argument>
         </arguments>
     </virtualType>
+
+    <virtualType name="AcquiredExpressPaymentsFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="string">acquired_payments_express</argument>
+            <argument name="formBlockType" xsi:type="string">Acquired\Payments\Block\Adminhtml\Order\Payment\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Acquired\Payments\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">AcquiredExpressValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">AcquiredExpressCommandPool</argument>
+        </arguments>
+    </virtualType>
     <!-- END FACADE -->
 
     <!-- CONFIGURATION READER -->
@@ -80,6 +90,11 @@
             <argument name="methodCode" xsi:type="const">Acquired\Payments\Ui\Method\PayByBankProvider::CODE</argument>
         </arguments>
     </type>
+    <virtualType name="AcquiredExpressConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="string">acquired_payments_express</argument>
+        </arguments>
+    </virtualType>
     <!-- END CONFIGURATION READER -->
 
 
@@ -108,6 +123,18 @@
             <argument name="configInterface" xsi:type="object">Acquired\Payments\Gateway\Config\Hosted\Config</argument>
         </arguments>
     </virtualType>
+    <virtualType name="AcquiredExpressValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">AcquiredExpressConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="AcquiredExpressConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">AcquiredExpressConfig</argument>
+        </arguments>
+    </virtualType>
     <!-- END VALUE HANDLER POOL -->
 
     <!-- COMMANDS -->
@@ -127,6 +154,15 @@
             <argument name="commands" xsi:type="array">
                 <item name="authorize" xsi:type="string">AcquiredHostedAuthorizeCommand</item>
                 <item name="capture" xsi:type="string">AcquiredHostedNoOpCommand</item>
+                <item name="void" xsi:type="string">AcquiredCardVoidCommand</item>
+                <item name="refund" xsi:type="string">AcquiredCardRefundCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="AcquiredExpressCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
                 <item name="void" xsi:type="string">AcquiredCardVoidCommand</item>
                 <item name="refund" xsi:type="string">AcquiredCardRefundCommand</item>
             </argument>

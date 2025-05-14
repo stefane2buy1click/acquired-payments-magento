@@ -2,6 +2,9 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.1.0] - Release Version
+- Add ApplePay Express support for purchases on the minicart
+
 ## [1.0.3] - Release Version
 - Improve security by eliminating an attack vector
 - Improve code quality

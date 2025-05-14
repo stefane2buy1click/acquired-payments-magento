@@ -203,7 +203,50 @@
                     </field>
                 </group>
 
-                <group id="acquired_pay_by_bank" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                <group id="acquired_express_payments" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                    <label>Express Payments</label>
+                    <comment>Enable customers to place orders using payment buttons supported by their devices, such as Apple Pay and Google Pay.</comment>
+                    <field id="active" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="10">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/acquired_express_payments/active</config_path>
+                    </field>
+                    <field id="locations" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="20">
+                        <label>Locations</label>
+                        <comment>Choose the location(s) where you want the button to appear.</comment>
+                        <source_model>Acquired\Payments\Model\Adminhtml\Source\Locations</source_model>
+                        <config_path>payment/acquired_express_payments/locations</config_path>
+                        <depends>
+                            <field id="active">1</field>
+                        </depends>
+                    </field>
+                    <!-- Apple Pay express settings -->
+                    <group id="acquired_express_applepay" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="30">
+                        <label>Apple Pay Settings</label>
+                        <depends>
+                            <field id="active">1</field>
+                        </depends>
+                        <field id="applepayactive" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="10">
+                            <label>Enabled</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/acquired_express_payments/applepay_active</config_path>
+                        </field>
+                        <field id="applepaybuttonstyle" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="20">
+                            <label>Button Style</label>
+                            <source_model>Acquired\Payments\Model\Adminhtml\Source\ApplePayButtonStyle</source_model>
+                            <config_path>payment/acquired_express_payments/applepay_style</config_path>
+                            <depends>
+                                <field id="applepayactive">1</field>
+                            </depends>
+                        </field>
+                        <field id="applepaybuttonpreview" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="30">
+                            <label>Preview</label>
+                            <frontend_model>Acquired\Payments\Block\Adminhtml\System\Config\ApplePayPreview</frontend_model>
+                        </field>
+                    </group>
+                </group>
+
+                <group id="acquired_pay_by_bank" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="2">
                     <label>Pay By Bank</label>
                     <field id="active" type="select" showInDefault="1" showInWebsite="1" showInStore="0" sortOrder="10">
                         <label>Enabled</label>
