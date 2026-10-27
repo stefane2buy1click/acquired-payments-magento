@@ -2,6 +2,10 @@
 
 All notable release changes to this project will be documented in this file.
 
+## [1.1.3] - Release Version
+- Add in PHP 8.5 compatibility and fix warnings
+- Fix issue with authenthication token storage not being properly scoped in cached causing reuse of tokens across different environments
+
 ## [1.1.2] - Release Version
 - Add ApplePay Express support for purchases on the cart page
 - Fix refund logic to check transaction age before attempting refund (orders under 24 hours old will use void instead)
